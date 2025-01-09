@@ -12,14 +12,14 @@ conda update -n base conda
 conda install -n base conda-libmamba-solver
 conda config --set solver libmamba
 
-conda create --name brainfm pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch -c nvidia -c anaconda -c conda-forge
+conda create --name brainfm pytorch==2.1.0 torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -c anaconda -c conda-forge -y
 conda activate brainfm
-conda install scikit-learn scikit-image pillow matplotlib seaborn tqdm -c pytorch -c anaconda -c conda-forge
-conda install -c conda-forge accelerate
+conda install scikit-learn scikit-image pillow matplotlib seaborn tqdm -c pytorch -c anaconda -c conda-forge -y
+conda install accelerate -c conda-forge -y
 
-python -m pip install webdataset pytorch-lightning
+# For NeuroClips
+python -m pip install webdataset pytorch-lightning einops kornia open-clip-torch omegaconf transformers
 ```
-<!-- python -m pip install -r requirements_neuroclips.txt -->
 
 
 <!-- conda install read-roi -c conda-forge
