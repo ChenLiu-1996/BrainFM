@@ -1,0 +1,1598 @@
+<html>
+    <head>
+        <title>HBN MRI Download Page - Release 11</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            var suffix = 0;
+            function downloadAll(oFrm) {
+                var oChk = oFrm.elements["file" + (suffix++)];
+                if (oChk) {
+                    if (oChk.checked) {
+                        window.location.href = oChk.value;
+                        setTimeout(function() {
+                            downloadAll(oFrm)
+                        }, 1000);
+                    } else {
+                        downloadAll(oFrm);
+                    }
+                }
+            }
+
+            $(document).ready(function() {
+                $('#select-all, #deselect-all').on('click', function(e) {
+                    var $boxes = $('input.site1, input.site2')
+                      , toggle = this.id === 'select-all' ? true : false;
+
+                    if (toggle) {
+                        $boxes.each(function() {
+                            this.checked = true;
+                        });
+                    } else {
+                        $boxes.each(function() {
+                            this.checked = false;
+                        });
+                    }
+                });
+
+                $('input[name=select-all-site]').on('click', function(e) {
+                    var $boxes = $('input.' + $(this).attr('class'));
+
+                    $boxes.each(function() {
+                        if (!this.checked) {
+                            this.checked = true;
+                        }
+                    });
+                });
+                $('input[name=deselect-all-site]').on('click', function(e) {
+                    var $boxes = $('input.' + $(this).attr('class'));
+
+                    $boxes.each(function() {
+                        if (this.checked) {
+                            this.checked = false;
+                        }
+                    });
+                });
+            });
+        </script>
+        <style type="text/css">
+            body {
+                width: 1000px;
+                margin: 0 auto;
+                padding-top: 100px;
+                padding-bottom: 100px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Healthy Brain Network MRI Data Download Page</h1>
+        <h1>Release 11 - n = 459</h1>
+        <p>Subject data are grouped into individual folders (.tar.gz). Each .tar.gz file is approximately 1.00 GB in size. Be sure to review Release Notes and Phenotypic Information prior to using this data. Use the checkboxes to select which subjects you would like to download.
+        <p/>
+        <div class="section" id="aws-and-cyberduck">
+            <h2>
+                <a class="headerlink" href="#aws-and-cyberduck"></a>
+                AWS and Cyberduck
+            </h2>
+            <p>
+                MRI and EEG data, organized into folders by participant, may also be accessed through an Amazon Web Services (AWS) <a class="reference external" href="https://aws.amazon.com/s3/">S3 bucket</a>
+                .
+            </p>
+            <p>
+                Each file in the S3 bucket can only be accessed using HTTP (i.e., <strong>no ftp or scp</strong>
+                ). You can obtain a URL for each desired file and then download it using an HTTP client such as a web browser, <em>wget</em>
+                , or <em>curl</em>
+                . Each file can only be accessed using its literal name- wildcards will not work.
+            </p>
+            <p>
+                There are file transfer programs that can handle S3 natively and will allow you to navigate through the data using a file browser.
+                <a class="reference external" href="https://cyberduck.io/">
+                    <b>Cyberduck</b>
+                </a>
+                is one such program that works with Windows and Mac OS X. Cyberduck also has a <a class="reference external" href="https://duck.sh">command line version</a>
+                that works with Windows, Mac OS X, and Linux. Instructions for using Cyberduck are as follows:
+            </p>
+            <ol class="arabic simple">
+                <li>
+                    Open Cyberduck and click on <em>Open Connection</em>
+                    .
+                </li>
+                <li>
+                    Set the application protocol in the dropdown menu to <em>S3 (Amazon Simple Storage Service)</em>
+                    .
+                </li>
+                <li>
+                    Set the server to <em>s3.amazonaws.com</em>
+                    .
+                </li>
+                <li>
+                    Check the box labelled <em>Anonymous Login</em>
+                    .
+                </li>
+                <li>
+                    Expand the More Options tab
+
+                    <ul>
+                        <li>
+                            To access compressed files (.tar.gz), set Path to <em>fcp-indi/data/Archives/HBN</em>
+                        </li>
+                        <li>
+                            To access uncompressed files, set Path to <em>fcp-indi/data/Projects/HBN</em>
+                        </li>
+                    </ul>
+                <li>
+                    Click <em>Connect</em>
+                    .
+                </li>
+            </ol>
+            <p>The end result should appear as follows:</p>
+            <img alt="cyberduck" src="../_images/hbn_cyberduck.png" style="display: block; margin: auto;"/>
+        </div>
+        <h3></h3>
+        <h2>Individual Subject Data from CBIC, n = 186 (scanning types included: morphometry, fMRI, diffusion kurtosis, and field map)</h2>
+        <form>
+            <div style="float:left; position:relative; margin-right:40px;" id="column1">
+                <h4>Set 1</h4>
+                <input type="button" value="Select" name="select-all-site" class="col1-CBIC"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col1-CBIC"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col1-CBIC" name="file1" id="file1" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAB683CYD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAB683CYD">NDARAB683CYD</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file2" id="file2" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAC296UCB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAC296UCB">NDARAC296UCB</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file3" id="file3" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAD459XJK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAD459XJK">NDARAD459XJK</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file4" id="file4" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAG429CGW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAG429CGW">NDARAG429CGW</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file5" id="file5" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAJ182PTB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAJ182PTB">NDARAJ182PTB</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file6" id="file6" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAJ401AX3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAJ401AX3">NDARAJ401AX3</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file7" id="file7" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAJ674WJT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAJ674WJT">NDARAJ674WJT</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file8" id="file8" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAN302EEM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAN302EEM">NDARAN302EEM</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file9" id="file9" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAN525BVK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAN525BVK">NDARAN525BVK</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file10" id="file10" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAP283ZBW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAP283ZBW">NDARAP283ZBW</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file11" id="file11" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARAW620GJ8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAW620GJ8">NDARAW620GJ8</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file12" id="file12" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARBD582TDT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBD582TDT">NDARBD582TDT</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file13" id="file13" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARBH789CUP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBH789CUP">NDARBH789CUP</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file14" id="file14" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARBK194FF5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBK194FF5">NDARBK194FF5</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file15" id="file15" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARBT780KVC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBT780KVC">NDARBT780KVC</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file16" id="file16" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARBW320UFW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBW320UFW">NDARBW320UFW</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file17" id="file17" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARBX076DCX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBX076DCX">NDARBX076DCX</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file18" id="file18" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARBY041JPE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBY041JPE">NDARBY041JPE</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file19" id="file19" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARBZ523GB7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBZ523GB7">NDARBZ523GB7</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file20" id="file20" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARCA214DMT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCA214DMT">NDARCA214DMT</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file21" id="file21" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARCL201KJZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCL201KJZ">NDARCL201KJZ</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file22" id="file22" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARCM638LMA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCM638LMA">NDARCM638LMA</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file23" id="file23" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARCR298BB9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCR298BB9">NDARCR298BB9</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file24" id="file24" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARCZ465CMY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCZ465CMY">NDARCZ465CMY</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file25" id="file25" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDF362AWA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDF362AWA">NDARDF362AWA</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file26" id="file26" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDJ872BYV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDJ872BYV">NDARDJ872BYV</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file27" id="file27" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDK910PKB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDK910PKB">NDARDK910PKB</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file28" id="file28" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDL471LWJ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDL471LWJ">NDARDL471LWJ</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file29" id="file29" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDR406DZ7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDR406DZ7">NDARDR406DZ7</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file30" id="file30" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDT889RT9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDT889RT9">NDARDT889RT9</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file31" id="file31" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDW969AW5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDW969AW5">NDARDW969AW5</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file32" id="file32" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDY312BR2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDY312BR2">NDARDY312BR2</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file33" id="file33" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDY883WN6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDY883WN6">NDARDY883WN6</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file34" id="file34" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARDZ794ZVP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDZ794ZVP">NDARDZ794ZVP</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file35" id="file35" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDAREA724CZR.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREA724CZR">NDAREA724CZR</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file36" id="file36" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDAREE177WUM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREE177WUM">NDAREE177WUM</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file37" id="file37" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDAREG872WYW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREG872WYW">NDAREG872WYW</label>
+                <br/>
+                <input type="checkbox" class="col1-CBIC" name="file38" id="file38" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDAREN202GUW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREN202GUW">NDAREN202GUW</label>
+                <br/>
+            </div>
+            <div style="float:left; position:relative; margin-right:40px;" id="column2">
+                <h4>Set 2</h4>
+                <input type="button" value="Select" name="select-all-site" class="col2-CBIC"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col2-CBIC"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col2-CBIC" name="file39" id="file39" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARER136KZ5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARER136KZ5">NDARER136KZ5</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file40" id="file40" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDAREV593YN4.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREV593YN4">NDAREV593YN4</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file41" id="file41" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDAREW193UFT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREW193UFT">NDAREW193UFT</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file42" id="file42" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDAREZ752EV5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREZ752EV5">NDAREZ752EV5</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file43" id="file43" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARFJ366DT8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFJ366DT8">NDARFJ366DT8</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file44" id="file44" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARFN221WW5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFN221WW5">NDARFN221WW5</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file45" id="file45" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARFX158KKM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFX158KKM">NDARFX158KKM</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file46" id="file46" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARFY623ZTE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFY623ZTE">NDARFY623ZTE</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file47" id="file47" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARFZ143BUQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFZ143BUQ">NDARFZ143BUQ</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file48" id="file48" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARGA577GXT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGA577GXT">NDARGA577GXT</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file49" id="file49" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARGA589KWK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGA589KWK">NDARGA589KWK</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file50" id="file50" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARGA890MKA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGA890MKA">NDARGA890MKA</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file51" id="file51" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARGD593RZN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGD593RZN">NDARGD593RZN</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file52" id="file52" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARGJ145ZK8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGJ145ZK8">NDARGJ145ZK8</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file53" id="file53" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARGL201ZZJ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGL201ZZJ">NDARGL201ZZJ</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file54" id="file54" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARGP669PKX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGP669PKX">NDARGP669PKX</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file55" id="file55" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARGT623ZBY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGT623ZBY">NDARGT623ZBY</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file56" id="file56" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHD051DYF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHD051DYF">NDARHD051DYF</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file57" id="file57" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHF039WDC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHF039WDC">NDARHF039WDC</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file58" id="file58" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHG445GAA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHG445GAA">NDARHG445GAA</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file59" id="file59" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHK843RUL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHK843RUL">NDARHK843RUL</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file60" id="file60" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHK987WDZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHK987WDZ">NDARHK987WDZ</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file61" id="file61" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHN206XY3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHN206XY3">NDARHN206XY3</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file62" id="file62" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHP344PRU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHP344PRU">NDARHP344PRU</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file63" id="file63" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHP417RH8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHP417RH8">NDARHP417RH8</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file64" id="file64" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHT417AYP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHT417AYP">NDARHT417AYP</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file65" id="file65" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHT505WX8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHT505WX8">NDARHT505WX8</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file66" id="file66" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHX716RBV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHX716RBV">NDARHX716RBV</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file67" id="file67" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARHY471CA6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHY471CA6">NDARHY471CA6</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file68" id="file68" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJC355HGV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJC355HGV">NDARJC355HGV</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file69" id="file69" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJE254CVV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJE254CVV">NDARJE254CVV</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file70" id="file70" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJE685DKE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJE685DKE">NDARJE685DKE</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file71" id="file71" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJF156KMU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJF156KMU">NDARJF156KMU</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file72" id="file72" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJL292RYV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJL292RYV">NDARJL292RYV</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file73" id="file73" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJM388RU1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJM388RU1">NDARJM388RU1</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file74" id="file74" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJT173MR1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJT173MR1">NDARJT173MR1</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file75" id="file75" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJU025FPW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJU025FPW">NDARJU025FPW</label>
+                <br/>
+                <input type="checkbox" class="col2-CBIC" name="file76" id="file76" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARJU530TZN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJU530TZN">NDARJU530TZN</label>
+                <br/>
+            </div>
+            <div style="float:left; position:relative; margin-right:40px;" id="column3">
+                <h4>Set 3</h4>
+                <input type="button" value="Select" name="select-all-site" class="col3-CBIC"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col3-CBIC"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col3-CBIC" name="file77" id="file77" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARKA170RFD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKA170RFD">NDARKA170RFD</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file78" id="file78" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARKB878YNG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKB878YNG">NDARKB878YNG</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file79" id="file79" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARKH264PPJ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKH264PPJ">NDARKH264PPJ</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file80" id="file80" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARKK981ZP5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKK981ZP5">NDARKK981ZP5</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file81" id="file81" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARKM199DXW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKM199DXW">NDARKM199DXW</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file82" id="file82" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARKW511VE6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKW511VE6">NDARKW511VE6</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file83" id="file83" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLB026GCN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLB026GCN">NDARLB026GCN</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file84" id="file84" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLC521DW5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLC521DW5">NDARLC521DW5</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file85" id="file85" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLE425YXG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLE425YXG">NDARLE425YXG</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file86" id="file86" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLF102RJF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLF102RJF">NDARLF102RJF</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file87" id="file87" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLJ228ZF8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLJ228ZF8">NDARLJ228ZF8</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file88" id="file88" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLJ728JY2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLJ728JY2">NDARLJ728JY2</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file89" id="file89" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLK158UN6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLK158UN6">NDARLK158UN6</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file90" id="file90" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLL846UYQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLL846UYQ">NDARLL846UYQ</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file91" id="file91" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLL888FG8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLL888FG8">NDARLL888FG8</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file92" id="file92" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLN739JVC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLN739JVC">NDARLN739JVC</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file93" id="file93" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLP413TUX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLP413TUX">NDARLP413TUX</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file94" id="file94" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLU274CC7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLU274CC7">NDARLU274CC7</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file95" id="file95" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARLV090WM9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLV090WM9">NDARLV090WM9</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file96" id="file96" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARMB848AH7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMB848AH7">NDARMB848AH7</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file97" id="file97" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARMF703BP3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMF703BP3">NDARMF703BP3</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file98" id="file98" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARMP494MYD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMP494MYD">NDARMP494MYD</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file99" id="file99" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARMU967FL9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMU967FL9">NDARMU967FL9</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file100" id="file100" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARNB130EX2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNB130EX2">NDARNB130EX2</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file101" id="file101" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARNC834UF7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNC834UF7">NDARNC834UF7</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file102" id="file102" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARNM384EEW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNM384EEW">NDARNM384EEW</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file103" id="file103" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARNT093XMB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNT093XMB">NDARNT093XMB</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file104" id="file104" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARNZ504BUW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNZ504BUW">NDARNZ504BUW</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file105" id="file105" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARNZ867KTD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNZ867KTD">NDARNZ867KTD</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file106" id="file106" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARPB957JXE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPB957JXE">NDARPB957JXE</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file107" id="file107" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARPC715KVG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPC715KVG">NDARPC715KVG</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file108" id="file108" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARPG387YY2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPG387YY2">NDARPG387YY2</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file109" id="file109" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARPJ395JDY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPJ395JDY">NDARPJ395JDY</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file110" id="file110" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARPJ610JCU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPJ610JCU">NDARPJ610JCU</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file111" id="file111" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARPV915ZPE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPV915ZPE">NDARPV915ZPE</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file112" id="file112" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRA719XBF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRA719XBF">NDARRA719XBF</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file113" id="file113" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRB889VDF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRB889VDF">NDARRB889VDF</label>
+                <br/>
+                <input type="checkbox" class="col3-CBIC" name="file114" id="file114" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRC959DHC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRC959DHC">NDARRC959DHC</label>
+                <br/>
+            </div>
+            <div style="float:left; position:relative; margin-right:40px;" id="column4">
+                <h4>Set 4</h4>
+                <input type="button" value="Select" name="select-all-site" class="col4-CBIC"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col4-CBIC"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col4-CBIC" name="file115" id="file115" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRF788HDD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRF788HDD">NDARRF788HDD</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file116" id="file116" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRG715JGY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRG715JGY">NDARRG715JGY</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file117" id="file117" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRH251ECK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRH251ECK">NDARRH251ECK</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file118" id="file118" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRH694YCJ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRH694YCJ">NDARRH694YCJ</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file119" id="file119" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRJ800YGA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRJ800YGA">NDARRJ800YGA</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file120" id="file120" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRP317WAP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRP317WAP">NDARRP317WAP</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file121" id="file121" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRU560UUG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRU560UUG">NDARRU560UUG</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file122" id="file122" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRW356KV1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRW356KV1">NDARRW356KV1</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file123" id="file123" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRY803NR6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRY803NR6">NDARRY803NR6</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file124" id="file124" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARRZ723GEV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRZ723GEV">NDARRZ723GEV</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file125" id="file125" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTA246MJP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTA246MJP">NDARTA246MJP</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file126" id="file126" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTB266RP5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTB266RP5">NDARTB266RP5</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file127" id="file127" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTD906GX0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTD906GX0">NDARTD906GX0</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file128" id="file128" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTE237JP0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTE237JP0">NDARTE237JP0</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file129" id="file129" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTF720AGD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTF720AGD">NDARTF720AGD</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file130" id="file130" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTG686JTF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTG686JTF">NDARTG686JTF</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file131" id="file131" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTG788FPK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTG788FPK">NDARTG788FPK</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file132" id="file132" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTH506TRG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTH506TRG">NDARTH506TRG</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file133" id="file133" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTH612TJM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTH612TJM">NDARTH612TJM</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file134" id="file134" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTJ963NC8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTJ963NC8">NDARTJ963NC8</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file135" id="file135" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTK720LER.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTK720LER">NDARTK720LER</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file136" id="file136" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTL576AWG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTL576AWG">NDARTL576AWG</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file137" id="file137" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTL995AN9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTL995AN9">NDARTL995AN9</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file138" id="file138" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTM499DC9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTM499DC9">NDARTM499DC9</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file139" id="file139" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTN452ZWE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTN452ZWE">NDARTN452ZWE</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file140" id="file140" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTU319KKP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTU319KKP">NDARTU319KKP</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file141" id="file141" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTV785XCD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTV785XCD">NDARTV785XCD</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file142" id="file142" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARTZ842BUW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTZ842BUW">NDARTZ842BUW</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file143" id="file143" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARUB069LMP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUB069LMP">NDARUB069LMP</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file144" id="file144" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARUE991BE0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUE991BE0">NDARUE991BE0</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file145" id="file145" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARUG267WAH.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUG267WAH">NDARUG267WAH</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file146" id="file146" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARUP003YKU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUP003YKU">NDARUP003YKU</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file147" id="file147" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARUR298LVX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUR298LVX">NDARUR298LVX</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file148" id="file148" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARUX442HJ8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUX442HJ8">NDARUX442HJ8</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file149" id="file149" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARUY720JW1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUY720JW1">NDARUY720JW1</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file150" id="file150" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARUZ221YL6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUZ221YL6">NDARUZ221YL6</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file151" id="file151" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARVC997CME.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVC997CME">NDARVC997CME</label>
+                <br/>
+                <input type="checkbox" class="col4-CBIC" name="file152" id="file152" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARVD748TR8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVD748TR8">NDARVD748TR8</label>
+                <br/>
+            </div>
+            <div style="float:left; position:relative; margin-right:40px;" id="column5">
+                <h4>Set 5</h4>
+                <input type="button" value="Select" name="select-all-site" class="col5-CBIC"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col5-CBIC"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col5-CBIC" name="file153" id="file153" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARVJ827RGV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVJ827RGV">NDARVJ827RGV</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file154" id="file154" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARVM326HYM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVM326HYM">NDARVM326HYM</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file155" id="file155" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARWA911LDR.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWA911LDR">NDARWA911LDR</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file156" id="file156" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARWE229HBY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWE229HBY">NDARWE229HBY</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file157" id="file157" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARWJ364YVY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWJ364YVY">NDARWJ364YVY</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file158" id="file158" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARWT403LP6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWT403LP6">NDARWT403LP6</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file159" id="file159" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARWV403LV8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWV403LV8">NDARWV403LV8</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file160" id="file160" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARWV826NEC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWV826NEC">NDARWV826NEC</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file161" id="file161" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARWY823JRP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWY823JRP">NDARWY823JRP</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file162" id="file162" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARWZ553VDB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWZ553VDB">NDARWZ553VDB</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file163" id="file163" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXA192VKQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXA192VKQ">NDARXA192VKQ</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file164" id="file164" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXC921EL3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXC921EL3">NDARXC921EL3</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file165" id="file165" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXJ125LXZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXJ125LXZ">NDARXJ125LXZ</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file166" id="file166" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXL053AW6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXL053AW6">NDARXL053AW6</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file167" id="file167" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXL170LDM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXL170LDM">NDARXL170LDM</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file168" id="file168" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXL491XWE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXL491XWE">NDARXL491XWE</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file169" id="file169" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXT081TEU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXT081TEU">NDARXT081TEU</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file170" id="file170" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXY277ND0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXY277ND0">NDARXY277ND0</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file171" id="file171" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARXZ702GYD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXZ702GYD">NDARXZ702GYD</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file172" id="file172" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARYA857NDW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYA857NDW">NDARYA857NDW</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file173" id="file173" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARYB483HY0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYB483HY0">NDARYB483HY0</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file174" id="file174" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARYG130LBT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYG130LBT">NDARYG130LBT</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file175" id="file175" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARYN120UPB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYN120UPB">NDARYN120UPB</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file176" id="file176" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARYR305FVM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYR305FVM">NDARYR305FVM</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file177" id="file177" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARYT509KUF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYT509KUF">NDARYT509KUF</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file178" id="file178" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZA115BW6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZA115BW6">NDARZA115BW6</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file179" id="file179" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZC423JYT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZC423JYT">NDARZC423JYT</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file180" id="file180" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZE459MJL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZE459MJL">NDARZE459MJL</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file181" id="file181" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZM877DMC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZM877DMC">NDARZM877DMC</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file182" id="file182" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZR424VU2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZR424VU2">NDARZR424VU2</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file183" id="file183" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZR700EG6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZR700EG6">NDARZR700EG6</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file184" id="file184" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZU732GRU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZU732GRU">NDARZU732GRU</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file185" id="file185" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZY805HRT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZY805HRT">NDARZY805HRT</label>
+                <br/>
+                <input type="checkbox" class="col5-CBIC" name="file186" id="file186" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CBIC/sub-NDARZY959NH2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZY959NH2">NDARZY959NH2</label>
+                <br/>
+            </div>
+            <input type="button" style="clear:both; display:block;" value="Download Selected" onclick="suffix=1;downloadAll(this.form);return false"/>
+        </form>
+        <h3></h3>
+        <h2>Individual Subject Data from CUNY, n = 273 (scanning types included: morphometry, fMRI, diffusion kurtosis, and field map)</h2>
+        <form>
+            <div style="float:left; position:relative; margin-right:40px;" id="column1">
+                <h4>Set 1</h4>
+                <input type="button" value="Select" name="select-all-site" class="col1-CUNY"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col1-CUNY"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col1-CUNY" name="file1" id="file1" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAB678VYW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAB678VYW">NDARAB678VYW</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file2" id="file2" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAC589YMB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAC589YMB">NDARAC589YMB</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file3" id="file3" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAK772VFJ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAK772VFJ">NDARAK772VFJ</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file4" id="file4" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAM177DKJ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAM177DKJ">NDARAM177DKJ</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file5" id="file5" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAM383UYD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAM383UYD">NDARAM383UYD</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file6" id="file6" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAM946HJE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAM946HJE">NDARAM946HJE</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file7" id="file7" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAP748AWX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAP748AWX">NDARAP748AWX</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file8" id="file8" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAU517MC6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAU517MC6">NDARAU517MC6</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file9" id="file9" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAW427GWK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAW427GWK">NDARAW427GWK</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file10" id="file10" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAW558WUT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAW558WUT">NDARAW558WUT</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file11" id="file11" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAW909KL9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAW909KL9">NDARAW909KL9</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file12" id="file12" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAX431KJ2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAX431KJ2">NDARAX431KJ2</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file13" id="file13" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAY977BZT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAY977BZT">NDARAY977BZT</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file14" id="file14" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAZ365JGG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAZ365JGG">NDARAZ365JGG</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file15" id="file15" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAZ532KK0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAZ532KK0">NDARAZ532KK0</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file16" id="file16" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARAZ885REB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARAZ885REB">NDARAZ885REB</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file17" id="file17" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBB542URX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBB542URX">NDARBB542URX</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file18" id="file18" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBE096YK6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBE096YK6">NDARBE096YK6</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file19" id="file19" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBH275EXT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBH275EXT">NDARBH275EXT</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file20" id="file20" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBP713ZWA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBP713ZWA">NDARBP713ZWA</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file21" id="file21" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBW706DML.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBW706DML">NDARBW706DML</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file22" id="file22" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBX122RKF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBX122RKF">NDARBX122RKF</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file23" id="file23" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBZ149ELP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBZ149ELP">NDARBZ149ELP</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file24" id="file24" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBZ333VWR.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBZ333VWR">NDARBZ333VWR</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file25" id="file25" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBZ547MHR.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBZ547MHR">NDARBZ547MHR</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file26" id="file26" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARBZ925XHL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARBZ925XHL">NDARBZ925XHL</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file27" id="file27" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCA127TK7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCA127TK7">NDARCA127TK7</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file28" id="file28" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCC491MHH.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCC491MHH">NDARCC491MHH</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file29" id="file29" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCD928TA7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCD928TA7">NDARCD928TA7</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file30" id="file30" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCE826DYW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCE826DYW">NDARCE826DYW</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file31" id="file31" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCE912ZXW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCE912ZXW">NDARCE912ZXW</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file32" id="file32" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCF674WB0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCF674WB0">NDARCF674WB0</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file33" id="file33" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCF777CT1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCF777CT1">NDARCF777CT1</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file34" id="file34" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCG099GTV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCG099GTV">NDARCG099GTV</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file35" id="file35" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCG719GW7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCG719GW7">NDARCG719GW7</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file36" id="file36" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCH755TLW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCH755TLW">NDARCH755TLW</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file37" id="file37" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCL601WXZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCL601WXZ">NDARCL601WXZ</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file38" id="file38" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCM707DHW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCM707DHW">NDARCM707DHW</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file39" id="file39" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCN766ED4.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCN766ED4">NDARCN766ED4</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file40" id="file40" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARCY741VVX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARCY741VVX">NDARCY741VVX</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file41" id="file41" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDC504KWE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDC504KWE">NDARDC504KWE</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file42" id="file42" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDC665WJQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDC665WJQ">NDARDC665WJQ</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file43" id="file43" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDE769PHW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDE769PHW">NDARDE769PHW</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file44" id="file44" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDE969RCC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDE969RCC">NDARDE969RCC</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file45" id="file45" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDG421RXF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDG421RXF">NDARDG421RXF</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file46" id="file46" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDH871DWE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDH871DWE">NDARDH871DWE</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file47" id="file47" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDP619NZB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDP619NZB">NDARDP619NZB</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file48" id="file48" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDU500JTQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDU500JTQ">NDARDU500JTQ</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file49" id="file49" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDV550JB2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDV550JB2">NDARDV550JB2</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file50" id="file50" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDW147PAZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDW147PAZ">NDARDW147PAZ</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file51" id="file51" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDW550GU6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDW550GU6">NDARDW550GU6</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file52" id="file52" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDW582ZX8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDW582ZX8">NDARDW582ZX8</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file53" id="file53" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDW783JM1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDW783JM1">NDARDW783JM1</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file54" id="file54" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDY198YGR.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDY198YGR">NDARDY198YGR</label>
+                <br/>
+                <input type="checkbox" class="col1-CUNY" name="file55" id="file55" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARDZ295LG8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARDZ295LG8">NDARDZ295LG8</label>
+                <br/>
+            </div>
+            <div style="float:left; position:relative; margin-right:40px;" id="column2">
+                <h4>Set 2</h4>
+                <input type="button" value="Select" name="select-all-site" class="col2-CUNY"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col2-CUNY"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col2-CUNY" name="file56" id="file56" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDAREC917PX7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREC917PX7">NDAREC917PX7</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file57" id="file57" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDAREG807ETG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREG807ETG">NDAREG807ETG</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file58" id="file58" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDAREL751LME.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREL751LME">NDAREL751LME</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file59" id="file59" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDAREP458FBK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREP458FBK">NDAREP458FBK</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file60" id="file60" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDAREP587HDK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREP587HDK">NDAREP587HDK</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file61" id="file61" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARER581GP0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARER581GP0">NDARER581GP0</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file62" id="file62" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARER805TNZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARER805TNZ">NDARER805TNZ</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file63" id="file63" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDAREZ538PHY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDAREZ538PHY">NDAREZ538PHY</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file64" id="file64" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFC058FU4.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFC058FU4">NDARFC058FU4</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file65" id="file65" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFD218LCZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFD218LCZ">NDARFD218LCZ</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file66" id="file66" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFF502FWM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFF502FWM">NDARFF502FWM</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file67" id="file67" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFJ087KP2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFJ087KP2">NDARFJ087KP2</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file68" id="file68" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFL595DNJ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFL595DNJ">NDARFL595DNJ</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file69" id="file69" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFM006EM0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFM006EM0">NDARFM006EM0</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file70" id="file70" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFR630AAD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFR630AAD">NDARFR630AAD</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file71" id="file71" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFV885NC0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFV885NC0">NDARFV885NC0</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file72" id="file72" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARFX020XPM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARFX020XPM">NDARFX020XPM</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file73" id="file73" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARGJ317VC9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGJ317VC9">NDARGJ317VC9</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file74" id="file74" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARGL619EVM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGL619EVM">NDARGL619EVM</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file75" id="file75" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARGM902BME.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGM902BME">NDARGM902BME</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file76" id="file76" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARGN483WFH.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGN483WFH">NDARGN483WFH</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file77" id="file77" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARGX966WLG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGX966WLG">NDARGX966WLG</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file78" id="file78" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARGY653XW3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGY653XW3">NDARGY653XW3</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file79" id="file79" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARGZ888HJN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARGZ888HJN">NDARGZ888HJN</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file80" id="file80" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHA652HR1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHA652HR1">NDARHA652HR1</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file81" id="file81" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHB382AP9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHB382AP9">NDARHB382AP9</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file82" id="file82" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHB988MYK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHB988MYK">NDARHB988MYK</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file83" id="file83" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHF001KBH.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHF001KBH">NDARHF001KBH</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file84" id="file84" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHH831HHG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHH831HHG">NDARHH831HHG</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file85" id="file85" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHJ489GCD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHJ489GCD">NDARHJ489GCD</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file86" id="file86" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHK956CJJ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHK956CJJ">NDARHK956CJJ</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file87" id="file87" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHN638ET1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHN638ET1">NDARHN638ET1</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file88" id="file88" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHP895ZWL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHP895ZWL">NDARHP895ZWL</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file89" id="file89" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHR789EVF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHR789EVF">NDARHR789EVF</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file90" id="file90" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHT174HGE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHT174HGE">NDARHT174HGE</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file91" id="file91" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHT518WEM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHT518WEM">NDARHT518WEM</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file92" id="file92" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHX754KYY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHX754KYY">NDARHX754KYY</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file93" id="file93" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHX844UZE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHX844UZE">NDARHX844UZE</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file94" id="file94" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHY346GY2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHY346GY2">NDARHY346GY2</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file95" id="file95" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHY571VGY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHY571VGY">NDARHY571VGY</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file96" id="file96" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARHY787LAL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARHY787LAL">NDARHY787LAL</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file97" id="file97" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJB132JDC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJB132JDC">NDARJB132JDC</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file98" id="file98" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJB586KG6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJB586KG6">NDARJB586KG6</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file99" id="file99" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJE271DMC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJE271DMC">NDARJE271DMC</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file100" id="file100" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJF399BC6.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJF399BC6">NDARJF399BC6</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file101" id="file101" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJJ856NTT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJJ856NTT">NDARJJ856NTT</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file102" id="file102" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJK431RXK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJK431RXK">NDARJK431RXK</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file103" id="file103" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJM013VR4.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJM013VR4">NDARJM013VR4</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file104" id="file104" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJV512CXQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJV512CXQ">NDARJV512CXQ</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file105" id="file105" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARJZ919LPL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARJZ919LPL">NDARJZ919LPL</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file106" id="file106" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKB845GV0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKB845GV0">NDARKB845GV0</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file107" id="file107" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKD245CN0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKD245CN0">NDARKD245CN0</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file108" id="file108" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKF767BNC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKF767BNC">NDARKF767BNC</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file109" id="file109" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKG294DZN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKG294DZN">NDARKG294DZN</label>
+                <br/>
+                <input type="checkbox" class="col2-CUNY" name="file110" id="file110" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKG951TXD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKG951TXD">NDARKG951TXD</label>
+                <br/>
+            </div>
+            <div style="float:left; position:relative; margin-right:40px;" id="column3">
+                <h4>Set 3</h4>
+                <input type="button" value="Select" name="select-all-site" class="col3-CUNY"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col3-CUNY"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col3-CUNY" name="file111" id="file111" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKH524VRA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKH524VRA">NDARKH524VRA</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file112" id="file112" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKH835PRL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKH835PRL">NDARKH835PRL</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file113" id="file113" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKK117YX5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKK117YX5">NDARKK117YX5</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file114" id="file114" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKK633KD2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKK633KD2">NDARKK633KD2</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file115" id="file115" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKL718YE8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKL718YE8">NDARKL718YE8</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file116" id="file116" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKL778XGD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKL778XGD">NDARKL778XGD</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file117" id="file117" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKU213TUX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKU213TUX">NDARKU213TUX</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file118" id="file118" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKW236TN7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKW236TN7">NDARKW236TN7</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file119" id="file119" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKZ632KF0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKZ632KF0">NDARKZ632KF0</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file120" id="file120" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARKZ851YAQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARKZ851YAQ">NDARKZ851YAQ</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file121" id="file121" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARLD243KRE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLD243KRE">NDARLD243KRE</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file122" id="file122" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARLJ728KPP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLJ728KPP">NDARLJ728KPP</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file123" id="file123" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARLJ933JPP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLJ933JPP">NDARLJ933JPP</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file124" id="file124" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARLM302HNW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLM302HNW">NDARLM302HNW</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file125" id="file125" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARLM981MEN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLM981MEN">NDARLM981MEN</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file126" id="file126" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARLZ995KLB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARLZ995KLB">NDARLZ995KLB</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file127" id="file127" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMA057ZH7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMA057ZH7">NDARMA057ZH7</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file128" id="file128" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMA657LLB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMA657LLB">NDARMA657LLB</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file129" id="file129" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMA884BME.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMA884BME">NDARMA884BME</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file130" id="file130" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMC371DK5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMC371DK5">NDARMC371DK5</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file131" id="file131" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMC688WLU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMC688WLU">NDARMC688WLU</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file132" id="file132" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARME258JN0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARME258JN0">NDARME258JN0</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file133" id="file133" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMG455ENC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMG455ENC">NDARMG455ENC</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file134" id="file134" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMH095VH7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMH095VH7">NDARMH095VH7</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file135" id="file135" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMH127CEW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMH127CEW">NDARMH127CEW</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file136" id="file136" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMN151FLL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMN151FLL">NDARMN151FLL</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file137" id="file137" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMT473DZV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMT473DZV">NDARMT473DZV</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file138" id="file138" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMT682FGA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMT682FGA">NDARMT682FGA</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file139" id="file139" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMU461UD4.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMU461UD4">NDARMU461UD4</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file140" id="file140" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMW623RTE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMW623RTE">NDARMW623RTE</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file141" id="file141" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMX051HZM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMX051HZM">NDARMX051HZM</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file142" id="file142" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARMY687DJ9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARMY687DJ9">NDARMY687DJ9</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file143" id="file143" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNA141CRE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNA141CRE">NDARNA141CRE</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file144" id="file144" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNA607WEF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNA607WEF">NDARNA607WEF</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file145" id="file145" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNA984ZXT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNA984ZXT">NDARNA984ZXT</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file146" id="file146" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNB401DN9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNB401DN9">NDARNB401DN9</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file147" id="file147" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNB818FWK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNB818FWK">NDARNB818FWK</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file148" id="file148" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARND445LCA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARND445LCA">NDARND445LCA</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file149" id="file149" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNJ987CYD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNJ987CYD">NDARNJ987CYD</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file150" id="file150" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNK156GLD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNK156GLD">NDARNK156GLD</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file151" id="file151" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNL469LJH.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNL469LJH">NDARNL469LJH</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file152" id="file152" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNL971TL5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNL971TL5">NDARNL971TL5</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file153" id="file153" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNT317BE2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNT317BE2">NDARNT317BE2</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file154" id="file154" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNT858ZU2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNT858ZU2">NDARNT858ZU2</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file155" id="file155" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNV187AMZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNV187AMZ">NDARNV187AMZ</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file156" id="file156" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNX583ELQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNX583ELQ">NDARNX583ELQ</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file157" id="file157" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNY393MAC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNY393MAC">NDARNY393MAC</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file158" id="file158" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNY402DTE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNY402DTE">NDARNY402DTE</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file159" id="file159" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARNY459YNU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARNY459YNU">NDARNY459YNU</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file160" id="file160" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPA088AVA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPA088AVA">NDARPA088AVA</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file161" id="file161" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPA414ARE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPA414ARE">NDARPA414ARE</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file162" id="file162" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPB578JMT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPB578JMT">NDARPB578JMT</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file163" id="file163" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPC404YEK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPC404YEK">NDARPC404YEK</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file164" id="file164" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPE460HAN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPE460HAN">NDARPE460HAN</label>
+                <br/>
+                <input type="checkbox" class="col3-CUNY" name="file165" id="file165" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPE497UEY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPE497UEY">NDARPE497UEY</label>
+                <br/>
+            </div>
+            <div style="float:left; position:relative; margin-right:40px;" id="column4">
+                <h4>Set 4</h4>
+                <input type="button" value="Select" name="select-all-site" class="col4-CUNY"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col4-CUNY"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col4-CUNY" name="file166" id="file166" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPF325KE2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPF325KE2">NDARPF325KE2</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file167" id="file167" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPF460UXT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPF460UXT">NDARPF460UXT</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file168" id="file168" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPG793CYM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPG793CYM">NDARPG793CYM</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file169" id="file169" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPH340DKQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPH340DKQ">NDARPH340DKQ</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file170" id="file170" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPL108LAV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPL108LAV">NDARPL108LAV</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file171" id="file171" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPL263BJZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPL263BJZ">NDARPL263BJZ</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file172" id="file172" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPM492VE0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPM492VE0">NDARPM492VE0</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file173" id="file173" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPP238VMX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPP238VMX">NDARPP238VMX</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file174" id="file174" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPP694XU9.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPP694XU9">NDARPP694XU9</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file175" id="file175" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPX937VA1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPX937VA1">NDARPX937VA1</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file176" id="file176" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPZ078XCK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPZ078XCK">NDARPZ078XCK</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file177" id="file177" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARPZ327PDV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARPZ327PDV">NDARPZ327PDV</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file178" id="file178" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRA523JDG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRA523JDG">NDARRA523JDG</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file179" id="file179" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRA725NE3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRA725NE3">NDARRA725NE3</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file180" id="file180" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRE437JGP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRE437JGP">NDARRE437JGP</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file181" id="file181" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRE588NRM.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRE588NRM">NDARRE588NRM</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file182" id="file182" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRE672MAD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRE672MAD">NDARRE672MAD</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file183" id="file183" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRF073YV1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRF073YV1">NDARRF073YV1</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file184" id="file184" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRG346DNL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRG346DNL">NDARRG346DNL</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file185" id="file185" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRG583CP3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRG583CP3">NDARRG583CP3</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file186" id="file186" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRH574YPF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRH574YPF">NDARRH574YPF</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file187" id="file187" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRH937RN8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRH937RN8">NDARRH937RN8</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file188" id="file188" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRJ662KVH.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRJ662KVH">NDARRJ662KVH</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file189" id="file189" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRK528GFZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRK528GFZ">NDARRK528GFZ</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file190" id="file190" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRM475LGX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRM475LGX">NDARRM475LGX</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file191" id="file191" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRM741RJ0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRM741RJ0">NDARRM741RJ0</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file192" id="file192" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRM938ZXD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRM938ZXD">NDARRM938ZXD</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file193" id="file193" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRP534RXW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRP534RXW">NDARRP534RXW</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file194" id="file194" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRP961CC7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRP961CC7">NDARRP961CC7</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file195" id="file195" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRR214VXP.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRR214VXP">NDARRR214VXP</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file196" id="file196" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRU865YHE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRU865YHE">NDARRU865YHE</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file197" id="file197" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRV843HGK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRV843HGK">NDARRV843HGK</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file198" id="file198" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARRW259YBX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARRW259YBX">NDARRW259YBX</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file199" id="file199" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTA364TAU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTA364TAU">NDARTA364TAU</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file200" id="file200" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTD443ZUB.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTD443ZUB">NDARTD443ZUB</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file201" id="file201" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTD794NKQ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTD794NKQ">NDARTD794NKQ</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file202" id="file202" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTG029XTK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTG029XTK">NDARTG029XTK</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file203" id="file203" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTG982TV1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTG982TV1">NDARTG982TV1</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file204" id="file204" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTL107DMD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTL107DMD">NDARTL107DMD</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file205" id="file205" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTP149FG8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTP149FG8">NDARTP149FG8</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file206" id="file206" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTV701GLL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTV701GLL">NDARTV701GLL</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file207" id="file207" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTX911FB0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTX911FB0">NDARTX911FB0</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file208" id="file208" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARTZ495EMX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARTZ495EMX">NDARTZ495EMX</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file209" id="file209" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUA035YJN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUA035YJN">NDARUA035YJN</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file210" id="file210" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUA442ZVF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUA442ZVF">NDARUA442ZVF</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file211" id="file211" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUD345RW8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUD345RW8">NDARUD345RW8</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file212" id="file212" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUR627UZG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUR627UZG">NDARUR627UZG</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file213" id="file213" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUT650LBR.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUT650LBR">NDARUT650LBR</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file214" id="file214" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUX070CWZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUX070CWZ">NDARUX070CWZ</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file215" id="file215" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUX098MT5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUX098MT5">NDARUX098MT5</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file216" id="file216" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUX616RC1.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUX616RC1">NDARUX616RC1</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file217" id="file217" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARUZ795GRG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARUZ795GRG">NDARUZ795GRG</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file218" id="file218" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVA281NVV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVA281NVV">NDARVA281NVV</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file219" id="file219" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVA602LMV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVA602LMV">NDARVA602LMV</label>
+                <br/>
+                <input type="checkbox" class="col4-CUNY" name="file220" id="file220" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVB091TPK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVB091TPK">NDARVB091TPK</label>
+                <br/>
+            </div>
+            <div style="float:left; position:relative; margin-right:40px;" id="column5">
+                <h4>Set 5</h4>
+                <input type="button" value="Select" name="select-all-site" class="col5-CUNY"/>
+                <br>
+                <input type="button" value="DeSelect" name="deselect-all-site" class="col5-CUNY"/>
+                <br>
+                <p></p>
+                <input type="checkbox" class="col5-CUNY" name="file221" id="file221" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVB261JUT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVB261JUT">NDARVB261JUT</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file222" id="file222" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVD437JV0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVD437JV0">NDARVD437JV0</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file223" id="file223" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVG587ALU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVG587ALU">NDARVG587ALU</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file224" id="file224" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVK467GCK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVK467GCK">NDARVK467GCK</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file225" id="file225" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVL789JCG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVL789JCG">NDARVL789JCG</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file226" id="file226" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARVN232MNL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARVN232MNL">NDARVN232MNL</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file227" id="file227" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWB327GL4.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWB327GL4">NDARWB327GL4</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file228" id="file228" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWC788HHV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWC788HHV">NDARWC788HHV</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file229" id="file229" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWD381KZF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWD381KZF">NDARWD381KZF</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file230" id="file230" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWG174EZD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWG174EZD">NDARWG174EZD</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file231" id="file231" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWH019XM7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWH019XM7">NDARWH019XM7</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file232" id="file232" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWJ450RMA.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWJ450RMA">NDARWJ450RMA</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file233" id="file233" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWK625CUV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWK625CUV">NDARWK625CUV</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file234" id="file234" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWN682PGV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWN682PGV">NDARWN682PGV</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file235" id="file235" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWT137MWK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWT137MWK">NDARWT137MWK</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file236" id="file236" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWU079DJZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWU079DJZ">NDARWU079DJZ</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file237" id="file237" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWV731NCC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWV731NCC">NDARWV731NCC</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file238" id="file238" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARWY995ZKT.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARWY995ZKT">NDARWY995ZKT</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file239" id="file239" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXA198GA0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXA198GA0">NDARXA198GA0</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file240" id="file240" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXD331HA0.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXD331HA0">NDARXD331HA0</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file241" id="file241" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXD774BJ8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXD774BJ8">NDARXD774BJ8</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file242" id="file242" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXG075MLU.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXG075MLU">NDARXG075MLU</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file243" id="file243" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXJ349THV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXJ349THV">NDARXJ349THV</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file244" id="file244" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXJ540FP7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXJ540FP7">NDARXJ540FP7</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file245" id="file245" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXP325YLV.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXP325YLV">NDARXP325YLV</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file246" id="file246" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXP456PGL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXP456PGL">NDARXP456PGL</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file247" id="file247" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXW796CFF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXW796CFF">NDARXW796CFF</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file248" id="file248" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARXY241DWE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARXY241DWE">NDARXY241DWE</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file249" id="file249" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYA192ALZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYA192ALZ">NDARYA192ALZ</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file250" id="file250" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYB099EL3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYB099EL3">NDARYB099EL3</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file251" id="file251" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYC105BU2.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYC105BU2">NDARYC105BU2</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file252" id="file252" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYD717TM7.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYD717TM7">NDARYD717TM7</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file253" id="file253" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYH224RXX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYH224RXX">NDARYH224RXX</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file254" id="file254" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYJ413BLN.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYJ413BLN">NDARYJ413BLN</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file255" id="file255" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYK236YUD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYK236YUD">NDARYK236YUD</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file256" id="file256" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYK710FRY.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYK710FRY">NDARYK710FRY</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file257" id="file257" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYL835DRL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYL835DRL">NDARYL835DRL</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file258" id="file258" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYM419LL5.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYM419LL5">NDARYM419LL5</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file259" id="file259" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYN333FPE.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYN333FPE">NDARYN333FPE</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file260" id="file260" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARYZ761TA3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARYZ761TA3">NDARYZ761TA3</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file261" id="file261" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZA151EU8.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZA151EU8">NDARZA151EU8</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file262" id="file262" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZA863HD3.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZA863HD3">NDARZA863HD3</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file263" id="file263" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZA879DJG.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZA879DJG">NDARZA879DJG</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file264" id="file264" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZC028AEC.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZC028AEC">NDARZC028AEC</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file265" id="file265" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZK167JPH.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZK167JPH">NDARZK167JPH</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file266" id="file266" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZL239PGW.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZL239PGW">NDARZL239PGW</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file267" id="file267" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZN501NFF.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZN501NFF">NDARZN501NFF</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file268" id="file268" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZN702ECL.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZN702ECL">NDARZN702ECL</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file269" id="file269" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZR022UDZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZR022UDZ">NDARZR022UDZ</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file270" id="file270" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZR881BWX.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZR881BWX">NDARZR881BWX</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file271" id="file271" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZU576KZD.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZU576KZD">NDARZU576KZD</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file272" id="file272" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZV406UFK.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZV406UFK">NDARZV406UFK</label>
+                <br/>
+                <input type="checkbox" class="col5-CUNY" name="file273" id="file273" value="https://fcp-indi.s3.amazonaws.com/data/Archives/HBN/MRI/Site-CUNY/sub-NDARZY045WUZ.tar.gz"/>
+                <label style="color:#0067a0;" for="sub-NDARZY045WUZ">NDARZY045WUZ</label>
+                <br/>
+            </div>
+            <input type="button" style="clear:both; display:block;" value="Download Selected" onclick="suffix=1;downloadAll(this.form);return false"/>
+        </form>
+    </body>
+</html>
