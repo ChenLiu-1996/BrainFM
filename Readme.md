@@ -19,6 +19,10 @@ conda install accelerate -c conda-forge -y
 
 # For NeuroClips
 python -m pip install webdataset pytorch-lightning einops kornia open-clip-torch omegaconf transformers
+python -m pip install git+https://github.com/openai/CLIP.git
+python -m pip install diffusers["torch"]==0.21.4 transformers huggingface_hub==0.25.2
+python -m pip install xformers==0.0.22.post7
+python -m pip install dalle2-pytorch==1.15.6
 ```
 
 
