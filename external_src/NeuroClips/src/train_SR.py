@@ -1,7 +1,5 @@
 import os
 import sys
-# SDXL unCLIP requires code from https://github.com/Stability-AI/generative-models/tree/main
-sys.path.append('generative_models/')
 import argparse
 import numpy as np
 from tqdm import tqdm
@@ -10,6 +8,12 @@ import gc
 import torch
 import torch.nn as nn
 from accelerate import Accelerator
+
+from common import CC2017_Dataset, CLIPProj, Neuroclips, RidgeRegression
+from Semantic import Semantic_Reconstruction
+
+# SDXL unCLIP requires code from https://github.com/Stability-AI/generative-models/tree/main
+sys.path.append('generative_models/')
 from generative_models.sgm.modules.encoders.modules import FrozenOpenCLIPImageEmbedder # bigG embedder from OpenCLIP
 
 # tf32 data type is faster than standard float32
@@ -39,8 +43,7 @@ def verify_necessary_files(args, verbose: bool = True):
         print('Verified: all necessary files are available!\n')
     return
 
-def save_ckpt(tag, ckpt_dir):
-    ckpt_path = f'{ckpt_dir}/{tag}.pth'
+def save_ckpt(ckpt_path):
     if accelerator.is_main_process:
         unwrapped_model = accelerator.unwrap_model(model)
         torch.save({
@@ -52,11 +55,12 @@ def save_ckpt(tag, ckpt_dir):
             'test_losses': test_losses,
             'lrs': lrs,
             }, ckpt_path)
-    print(f"\n---saved {ckpt_dir}/{tag} ckpt!---\n")
+    print(f"\n---saved {ckpt_path} ckpt!---\n")
+    return
 
-def load_ckpt(tag, ckpt_dir, load_lr=True, load_optimizer=True, load_epoch=True, strict=True, multisubj_loading=False):
-    print(f"\n---loading {ckpt_dir}/{tag}.pth ckpt---\n")
-    checkpoint = torch.load(f'{ckpt_dir}/last.pth', map_location='cpu')
+def load_ckpt(ckpt_path, load_lr=True, load_optimizer=True, load_epoch=True, strict=True, multisubj_loading=False):
+    print(f"\n---loading {ckpt_path} ckpt---\n")
+    checkpoint = torch.load(ckpt_path, map_location='cpu')
     state_dict = checkpoint['model_state_dict']
     if multisubj_loading: # remove incompatible ridge layer that will otherwise error
         state_dict.pop('ridge.linears.0.weight',None)
@@ -69,57 +73,15 @@ def load_ckpt(tag, ckpt_dir, load_lr=True, load_optimizer=True, load_epoch=True,
     if load_lr:
         lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
     del checkpoint
-
-class CC2017_Dataset(torch.utils.data.Dataset):
-    def __init__(self, voxel, image, text, istrain):
-        if istrain == True:
-            self.length = 4320
-        else:
-            self.length = 1200
-        self.voxel = voxel
-        self.image = image
-        self.text = text
-
-    def __len__(self):
-        return self.length
-
-    def __getitem__(self, idx):
-        return self.voxel[idx], self.image[idx], self.text[idx]
-
-class CLIPProj(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.proj = nn.Parameter(torch.randn(1664, 1280))
-    def forward(self, x):
-        x = torch.mean(x, dim = 1)
-        x = x @ self.proj
-        return x
-
-class Neuroclips(nn.Module):
-    def __init__(self):
-        super(Neuroclips, self).__init__()
-    def forward(self, x):
-        return x
-
-class RidgeRegression(torch.nn.Module):
-    # make sure to add weight_decay when initializing optimizer
-    def __init__(self, input_sizes, out_features, seq_len):
-        super(RidgeRegression, self).__init__()
-        self.out_features = out_features
-        self.linears = torch.nn.ModuleList([
-                torch.nn.Linear(input_size, out_features) for input_size in input_sizes
-            ])
-    def forward(self, x, subj_idx):
-        out = torch.cat([self.linears[subj_idx](x[:,seq]).unsqueeze(1) for seq in range(seq_len)], dim=1)
-        return out
+    return
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Model Training Configuration")
-    parser.add_argument(
-        "--model_name", type=str, default="testing",
-        help="name of model, used for ckpt saving and wandb logging (if enabled)",
-    )
+    # parser.add_argument(
+    #     "--model_name", type=str, default="testing",
+    #     help="name of model, used for ckpt saving and wandb logging (if enabled)",
+    # )
     parser.add_argument(
         "--subj", type=int, default=1, choices=[1,2,3],
         help="Validate on which subject?",
@@ -145,11 +107,11 @@ if __name__ == '__main__':
         help="multiply loss from blurry recons by this number",
     )
     parser.add_argument(
-        "--clip_scale", type=float,default=1.,
+        "--clip_scale", type=float, default=1.,
         help="multiply contrastive loss by this number",
     )
     parser.add_argument(
-        "--prior_scale",type=float, default=30,
+        "--prior_scale", type=float, default=30,
         help="multiply diffusion prior loss by this",
     )
     parser.add_argument(
@@ -206,10 +168,10 @@ if __name__ == '__main__':
     # First use "accelerate config" in terminal and setup using deepspeed stage 2 with CPU offloading!
     accelerator = Accelerator(split_batches=False, mixed_precision="fp16")
 
-    print("PID of this process =",os.getpid())
+    print("PID of this process =", os.getpid())
     device = accelerator.device
     #device = 'cuda:0'
-    print("device:",device)
+    print("device:", device)
     world_size = accelerator.state.num_processes
     distributed = not accelerator.state.distributed_type == 'NO'
     num_devices = torch.cuda.device_count()
@@ -217,7 +179,7 @@ if __name__ == '__main__':
     num_workers = num_devices
     print(accelerator.state)
 
-    print("distributed =",distributed, "num_devices =", num_devices, "local rank =", local_rank, "world size =", world_size, "data_type =", data_type)
+    print("distributed =", distributed, "num_devices =", num_devices, "local rank =", local_rank, "world size =", world_size, "data_type =", data_type)
     print = accelerator.print # only print if local_rank=0
 
     NeuroClips_ROOT = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
@@ -228,12 +190,12 @@ if __name__ == '__main__':
 
     # seed all random functions
     utils.seed_everything(args.seed)
-    if args.use_prior:
-        model_name =f'video_subj0{args.subj}_SR'
-    else:
-        model_name =f'video_subj0{args.subj}_SR_backbone'
 
-    os.makedirs(f'{args.model_dir}/{model_name}', exist_ok=True)
+    if args.use_prior:
+        model_name_backbone = f'video_subj0{args.subj}_SR_backbone.pth'
+        model_name = f'video_subj0{args.subj}_SR.pth'
+    else:
+        model_name = f'video_subj0{args.subj}_SR_backbone.pth'
 
     if args.use_image_aug or args.blurry_recon:
         import kornia
@@ -245,12 +207,7 @@ if __name__ == '__main__':
             data_keys=["input"],
         )
 
-    num_samples_per_epoch = (4320) // num_devices
-    num_iterations_per_epoch = num_samples_per_epoch // args.batch_size
-    print("batch_size =", args.batch_size, "num_iterations_per_epoch =", num_iterations_per_epoch, "num_samples_per_epoch =", num_samples_per_epoch)
-
     subj_list = [args.subj]
-    seq_len = 1
 
     if args.subj == 1:
         voxel_length = 13447
@@ -258,6 +215,12 @@ if __name__ == '__main__':
         voxel_length = 14828
     elif args.subj == 3 :
         voxel_length = 9114
+
+    clip_seq_dim = 256
+    clip_emb_dim = 1664
+    seq_len = 1
+    text_scale = 0.25
+    text_scale_prior = 1.0
 
     voxel_train = torch.load(f'{args.data_dir}/subj0{args.subj}_train_fmri.pt', map_location='cpu')
     voxel_test = torch.load(f'{args.data_dir}/subj0{args.subj}_test_fmri.pt', map_location='cpu')
@@ -275,12 +238,15 @@ if __name__ == '__main__':
     print("Loaded all crucial train captions to cpu!", train_text.shape)
     print("Loaded all crucial test captions to cpu!", test_text.shape)
 
-
     train_dl = {}
-    train_dataset = CC2017_Dataset(voxel_train, train_images, train_text, istrain = True)
-    test_dataset = CC2017_Dataset(voxel_test, test_images, test_text, istrain = False)
+    train_dataset = CC2017_Dataset(voxel_train, train_images, train_text, istrain=True)
+    test_dataset = CC2017_Dataset(voxel_test, test_images, test_text, istrain=False)
     train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=0, drop_last=False)
     test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=300, shuffle=False, num_workers=0, drop_last=False)
+
+    num_samples_per_epoch = len(train_dataset) // num_devices
+    num_iterations_per_epoch = num_samples_per_epoch // args.batch_size
+    print("batch_size =", args.batch_size, "num_iterations_per_epoch =", num_iterations_per_epoch, "num_samples_per_epoch =", num_samples_per_epoch)
 
     clip_img_embedder = FrozenOpenCLIPImageEmbedder(
         arch="ViT-bigG-14",
@@ -290,11 +256,10 @@ if __name__ == '__main__':
     )
     clip_img_embedder.to(device)
 
-    clip_seq_dim = 256
-    clip_emb_dim = 1664
-
     if args.blurry_recon:
         from diffusers import AutoencoderKL
+        from autoencoder.convnext import ConvnextXL
+
         autoenc = AutoencoderKL(
             down_block_types=['DownEncoderBlock2D', 'DownEncoderBlock2D', 'DownEncoderBlock2D', 'DownEncoderBlock2D'],
             up_block_types=['UpDecoderBlock2D', 'UpDecoderBlock2D', 'UpDecoderBlock2D', 'UpDecoderBlock2D'],
@@ -310,8 +275,6 @@ if __name__ == '__main__':
         autoenc.requires_grad_(False)
         autoenc.to(device)
         utils.count_params(autoenc)
-
-        from autoencoder.convnext import ConvnextXL
 
         cnx = ConvnextXL(f'{args.model_dir}/convnext_xlarge_alpha0.75_fullckpt.pth')
         cnx.requires_grad_(False)
@@ -331,38 +294,35 @@ if __name__ == '__main__':
 
     model = Neuroclips()
 
-    from Semantic import Semantic_Reconstruction
-    model.backbone = Semantic_Reconstruction(h=args.hidden_dim, in_dim=args.hidden_dim, seq_len=seq_len, n_blocks=args.n_blocks,
-                            clip_size=clip_emb_dim, out_dim=clip_emb_dim*clip_seq_dim,
-                            blurry_recon=args.blurry_recon, clip_scale=args.clip_scale)
+    model.backbone = Semantic_Reconstruction(h=args.hidden_dim,
+                                             in_dim=args.hidden_dim,
+                                             seq_len=seq_len,
+                                             n_blocks=args.n_blocks,
+                                             clip_size=clip_emb_dim,
+                                             out_dim=clip_emb_dim * clip_seq_dim,
+                                             blurry_recon=args.blurry_recon,
+                                             clip_scale=args.clip_scale)
     utils.count_params(model.backbone)
     utils.count_params(model)
 
     if args.use_prior:
-        from Semantic import *
-
-        # setup diffusion prior network
-        out_dim = clip_emb_dim
-        depth = 6
-        dim_head = 52
-        heads = clip_emb_dim//52 # heads * dim_head = clip_emb_dim
-        timesteps = 100
+        from Semantic import PriorNetwork, BrainDiffusionPrior
 
         prior_network = PriorNetwork(
-                dim=out_dim,
-                depth=depth,
-                dim_head=dim_head,
-                heads=heads,
+                dim=clip_emb_dim,
+                depth=6,
+                dim_head=52,
+                heads=clip_emb_dim // 52,
                 causal=False,
-                num_tokens = clip_seq_dim,
+                num_tokens=clip_seq_dim,
                 learned_query_mode="pos_emb",
             )
 
         model.diffusion_prior = BrainDiffusionPrior(
             net=prior_network,
-            image_embed_dim=out_dim,
+            image_embed_dim=clip_emb_dim,
             condition_on_text_encodings=False,
-            timesteps=timesteps,
+            timesteps=100,
             cond_drop_prob=0.2,
             image_embed_scale=None,
         )
@@ -372,18 +332,19 @@ if __name__ == '__main__':
 
     if args.use_prior:
 
-        print("\n---resuming from backbone.pth ckpt---\n")
+        print("\n---resuming from backbone ckpt---\n")
 
         # You can choose to load the pre-trained backbone from MindEye2, which will accelerate your neuroclips' convergence.
         checkpoint = torch.load(f'{args.model_dir}/final_subj01_pretrained_40sess_24bs_last.pth', map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
         del checkpoint
+
         model.ridge = RidgeRegression(num_voxels_list, out_features=args.hidden_dim, seq_len=seq_len)
         model.clipproj = CLIPProj()
         utils.count_params(model.ridge)
         utils.count_params(model)
 
-        checkpoint = torch.load(f'{args.model_dir}/video_subj0{args.subj}_SR_backbone.pth', map_location='cpu')
+        checkpoint = torch.load(f'{args.model_dir}/{model_name_backbone}', map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
         del checkpoint
 
@@ -412,7 +373,6 @@ if __name__ == '__main__':
         checkpoint = torch.load(f'{args.data_dir}/coco_tokens_avg_proj.pth')
         model.clipproj.load_state_dict(checkpoint)
         model.clipproj.requires_grad_(False)
-
 
     optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.max_lr)
 
@@ -452,9 +412,7 @@ if __name__ == '__main__':
     mse = nn.MSELoss()
     l1 = nn.L1Loss()
     soft_loss_temps = utils.cosine_anneal(0.004, 0.0075, args.num_epochs - int(args.mixup_pct * args.num_epochs))
-    text_scale = 0.25
-    text_scale_prior = 1.0
-    if num_devices!=0 and distributed:
+    if num_devices != 0 and distributed:
         model = model.module
 
     for epoch in progress_bar:
@@ -485,8 +443,9 @@ if __name__ == '__main__':
         for s, train_dl in enumerate(train_dls):
             with torch.cuda.amp.autocast(dtype=data_type):
                 for iter_idx, (voxel, image, text) in enumerate(train_dl):
-                    image = image[:,2+epoch%2,:,:,:].float()
-                    voxel = voxel[:,epoch%2,:].half().unsqueeze(1)
+                    image = image[:, 2 + epoch % 2, :, :, :].float()
+                    voxel = voxel[:, epoch % 2, :].half().unsqueeze(1)
+
                     image_iters[iter_idx, s * args.batch_size : s * args.batch_size + args.batch_size] = image
                     text_iters[iter_idx, s * args.batch_size : s * args.batch_size + args.batch_size] = text
 
@@ -578,7 +537,7 @@ if __name__ == '__main__':
                 if args.blurry_recon:
                     image_enc_pred, transformer_feats = blurry_image_enc_
 
-                    image_enc = autoenc.encode(2*image-1).latent_dist.mode() * 0.18215
+                    image_enc = autoenc.encode(2 * image - 1).latent_dist.mode() * 0.18215
                     loss_blurry = l1(image_enc_pred, image_enc)
                     loss_blurry_total += loss_blurry.item()
 
@@ -725,15 +684,14 @@ if __name__ == '__main__':
                 # if utils.is_interactive(): clear_output(wait=True)
                 print("-------------------------")
 
-
         # Save model checkpoint and reconstruct
         if loss_all/4 < best_test_loss:
             best_test_loss = loss_all/4
             print('new best test loss:',best_test_loss)
             if not args.use_prior:
-                save_ckpt(f'{model_name}', ckpt_dir=args.model_dir)
+                save_ckpt(f'{args.model_dir}/{model_name}')
         else:
-            print('not best:',loss_all/4, 'best test loss is',best_test_loss)
+            print('not best:', loss_all/4, 'best test loss is', best_test_loss)
 
         # wait for other GPUs to catch up if needed
         accelerator.wait_for_everyone()
@@ -742,4 +700,4 @@ if __name__ == '__main__':
 
     print("\n===Finished!===\n")
     if args.ckpt_saving and args.use_prior:
-        save_ckpt(f'{model_name}', ckpt_dir=args.model_dir)
+        save_ckpt(f'{args.model_dir}/{model_name}')

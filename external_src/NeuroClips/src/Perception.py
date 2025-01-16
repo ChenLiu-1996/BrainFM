@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from decoder import DecoderVideo
+from video_decoder import DecoderVideo
+
 
 class Perception_Reconstruction(nn.Module):
     def __init__(self, h=4096, in_dim=4096, out_dim=768, seq_len=2, n_blocks=4, drop=.15, clip_size=768, blurry_recon=True, clip_scale=1):
@@ -16,8 +17,8 @@ class Perception_Reconstruction(nn.Module):
         self.mixer_blocks2 = nn.ModuleList([
             self.mixer_block2(seq_len, drop) for _ in range(n_blocks)
         ])
-        
-  
+
+
         if self.blurry_recon:
             self.blin1 = nn.Linear(h*seq_len,4*28*28,bias=True)
             self.bdropout = nn.Dropout(.3)
@@ -38,7 +39,7 @@ class Perception_Reconstruction(nn.Module):
                 nn.ReLU(True),
                 nn.Conv2d(512, 512, 1, bias=True),
             )
-    
+
     def mlp(self, in_dim, out_dim, drop):
         return nn.Sequential(
             nn.Linear(in_dim, out_dim),
@@ -46,7 +47,7 @@ class Perception_Reconstruction(nn.Module):
             nn.Dropout(drop),
             nn.Linear(out_dim, out_dim),
         )
-    
+
     def mixer_block1(self, h, drop):
         return nn.Sequential(
             nn.LayerNorm(h),
@@ -58,23 +59,23 @@ class Perception_Reconstruction(nn.Module):
             nn.LayerNorm(seq_len),
             self.mlp(seq_len, seq_len, drop)  # Channel mixing
         )
-        
+
     def forward(self, x, time):
         # make empty tensors
         b = torch.Tensor([[0.],[0.]])
-        
+
         # Mixer blocks
         residual1 = x
         residual2 = x.permute(0,2,1)
         for block1, block2 in zip(self.mixer_blocks1,self.mixer_blocks2):
-            x = block1(x) + residual1 
+            x = block1(x) + residual1
             residual1 = x
             x = x.permute(0,2,1)
-            
+
             x = block2(x) + residual2
             residual2 = x
             x = x.permute(0,2,1)
-            
+
         x = x.reshape(x.size(0), -1)
 
         if self.blurry_recon:
@@ -102,15 +103,15 @@ class Inception_Extension(nn.Module):
         self.mixer_blocks2 = nn.ModuleList([
             self.mixer_block2(seq_len, drop) for _ in range(n_blocks)
         ])
-        
-    
+
+
     def mlp(self, in_dim, out_dim, drop):
         return nn.Sequential(
             nn.Linear(in_dim, out_dim),
             nn.GELU(),
             nn.Dropout(drop),
         )
-    
+
     def mixer_block1(self, h, drop):
         return nn.Sequential(
             nn.LayerNorm(h),
@@ -122,24 +123,24 @@ class Inception_Extension(nn.Module):
             nn.LayerNorm(seq_len),
             self.mlp(seq_len, seq_len, drop)  # Channel mixing
         )
-        
+
     def forward(self, x):
         # make empty tensors
         b = torch.Tensor([[0.],[0.]])
-        
+
         x = self.lin0(x)
         # Mixer blocks
         residual1 = x
         residual2 = x.permute(0,2,1)
         for block1, block2 in zip(self.mixer_blocks1,self.mixer_blocks2):
-            x = block1(x) + residual1 
+            x = block1(x) + residual1
             residual1 = x
             x = x.permute(0,2,1)
-            
+
             x = block2(x) + residual2
             residual2 = x
             x = x.permute(0,2,1)
-            
+
         x = x.reshape(x.size(0), -1)
 
         return self.lin1(x).reshape(len(x)*self.expand,-1)
