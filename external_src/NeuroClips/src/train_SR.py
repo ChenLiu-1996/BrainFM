@@ -288,7 +288,7 @@ if __name__ == '__main__':
             kornia.augmentation.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1, p=0.8),
             kornia.augmentation.RandomGrayscale(p=0.1),
             kornia.augmentation.RandomSolarize(p=0.1),
-            kornia.augmentation.RandomResizedCrop((224,224), scale=(.9,.9), ratio=(1,1), p=1.0),
+            kornia.augmentation.RandomResizedCrop((224, 224), scale=(.9, .9), ratio=(1, 1), p=1.0),
             data_keys=["input"],
         )
 

@@ -413,7 +413,7 @@ if __name__ == '__main__':
 
                     if test_image is None:
                         voxel = voxel.half()
-                        image = image.reshape(len(image) * args.fps * 2, 3, 256, 256).cpu()
+                        image = image.reshape(len(image) * args.fps * 2, 3, 224, 224).cpu()
 
                     loss=0.
 
