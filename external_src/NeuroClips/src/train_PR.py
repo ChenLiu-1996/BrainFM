@@ -12,9 +12,9 @@ from accelerate import Accelerator
 from common import CC2017_Dataset, Neuroclips, RidgeRegression
 from Perception import Perception_Reconstruction, Inception_Extension
 
-# SDXL unCLIP requires code from https://github.com/Stability-AI/generative-models/tree/main
-sys.path.append('generative_models/')
-from generative_models.sgm.modules.encoders.modules import FrozenOpenCLIPImageEmbedder # bigG embedder
+# # SDXL unCLIP requires code from https://github.com/Stability-AI/generative-models/tree/main
+# sys.path.append('generative_models/')
+# from generative_models.sgm.modules.encoders.modules import FrozenOpenCLIPImageEmbedder # bigG embedder
 
 # tf32 data type is faster than standard float32
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -51,85 +51,84 @@ def save_ckpt(ckpt_path):
             'test_losses': test_losses,
             'lrs': lrs,
             }, ckpt_path)
-    print(f"\n---saved {ckpt_path} ckpt!---\n")
+    print(f'\n---saved {ckpt_path} ckpt!---\n')
     return
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Model Training Configuration")
-    # parser.add_argument(
-    #     "--model_name", type=str, default="testing",
-    #     help="name of model, used for ckpt saving and wandb logging (if enabled)",
-    # )
+    parser = argparse.ArgumentParser(description='Model Training Configuration')
     parser.add_argument(
-        "--subj", type=int, default=1, choices=[1,2,3],
-        help="Validate on which subject?",
+        '--subj', type=int, default=1, choices=[1,2,3],
+        help='Validate on which subject?',
     )
     parser.add_argument(
-        "--use_prior",action=argparse.BooleanOptionalAction, default=False,
-        help="whether to train diffusion prior (True) or just rely on retrieval part of the pipeline (False)",
+        '--use_prior',action=argparse.BooleanOptionalAction, default=False,
+        help='whether to train diffusion prior (True) or just rely on retrieval part of the pipeline (False)',
     )
     parser.add_argument(
-        "--batch_size", type=int, default=10,
-        help="Batch size can be increased by 10x if only training retreival submodule and not diffusion prior",
+        '--batch_size', type=int, default=10,
+        help='Batch size can be increased by 10x if only training retreival submodule and not diffusion prior',
     )
     parser.add_argument(
-        "--mixup_pct", type=float, default=.33,
-        help="proportion of way through training when to switch from BiMixCo to SoftCLIP",
+        '--mixup_pct', type=float, default=.33,
+        help='proportion of way through training when to switch from BiMixCo to SoftCLIP',
     )
     parser.add_argument(
-        "--blurry_recon",action=argparse.BooleanOptionalAction, default=True,
-        help="whether to output blurry reconstructions",
+        '--blurry_recon',action=argparse.BooleanOptionalAction, default=True,
+        help='whether to output blurry reconstructions',
     )
     parser.add_argument(
-        "--blur_scale", type=float, default=.5,
-        help="multiply loss from blurry recons by this number",
+        '--blur_scale', type=float, default=.5,
+        help='multiply loss from blurry recons by this number',
     )
     parser.add_argument(
-        "--clip_scale", type=float, default=1.,
-        help="multiply contrastive loss by this number",
+        '--clip_scale', type=float, default=1.,
+        help='multiply contrastive loss by this number',
     )
     parser.add_argument(
-        "--prior_scale", type=float, default=30,
-        help="multiply diffusion prior loss by this",
+        '--prior_scale', type=float, default=30,
+        help='multiply diffusion prior loss by this',
     )
     parser.add_argument(
-        "--use_image_aug",action=argparse.BooleanOptionalAction, default=False,
-        help="whether to use image augmentation",
+        '--use_image_aug',action=argparse.BooleanOptionalAction, default=False,
+        help='whether to use image augmentation',
     )
     parser.add_argument(
-        "--num_epochs", type=int, default=150,
-        help="number of epochs of training",
+        '--num_epochs', type=int, default=150,
+        help='number of epochs of training',
     )
     parser.add_argument(
-        "--n_blocks", type=int, default=4,
+        '--n_blocks', type=int, default=4,
     )
     parser.add_argument(
-        "--hidden_dim", type=int, default=4096,
+        '--hidden_dim', type=int, default=4096,
     )
     parser.add_argument(
-        "--lr_scheduler_type", type=str, default='cycle',choices=['cycle','linear'],
+        '--lr_scheduler_type', type=str, default='cycle',choices=['cycle','linear'],
     )
     parser.add_argument(
-        "--ckpt_saving",action=argparse.BooleanOptionalAction, default=True,
+        '--ckpt_saving',action=argparse.BooleanOptionalAction, default=True,
     )
     parser.add_argument(
-        "--seed", type=int, default=42,
+        '--seed', type=int, default=42,
     )
     parser.add_argument(
-        "--max_lr", type=float, default=3e-4,
+        '--max_lr', type=float, default=3e-4,
     )
     parser.add_argument(
-        "--use_text",action=argparse.BooleanOptionalAction, default=False,
+        '--use_text',action=argparse.BooleanOptionalAction, default=False,
     )
     parser.add_argument(
-        "--fps", type=int, default=3,
+        '--fps', type=int, default=3,
     )
     parser.add_argument(
-        "--data_dir", type=str, default='$NeuroClips_ROOT/data/',
+        '--data_dir', type=str, default='$NeuroClips_ROOT/data/',
     )
     parser.add_argument(
-        "--model_dir", type=str, default='$NeuroClips_ROOT/checkpoints/',
+        '--model_dir', type=str, default='$NeuroClips_ROOT/checkpoints/',
+    )
+    parser.add_argument(
+        '--neuroclips_model_dir', type=str, default='$NeuroClips_ROOT/outputs/checkpoints/',
     )
 
     args = parser.parse_args()
@@ -140,32 +139,31 @@ if __name__ == '__main__':
         local_rank = 0
     else:
         local_rank = int(local_rank)
-    print("LOCAL RANK ", local_rank)
+    print('LOCAL RANK ', local_rank)
 
     data_type = torch.float16 # change depending on your mixed_precision
-    num_devices = torch.cuda.device_count()
-    if num_devices==0: num_devices = 1
 
-    # First use "accelerate config" in terminal and setup using deepspeed stage 2 with CPU offloading!
-    accelerator = Accelerator(split_batches=False, mixed_precision="fp16")
+    # First use 'accelerate config' in terminal and setup using deepspeed stage 2 with CPU offloading!
+    accelerator = Accelerator(split_batches=False, mixed_precision='fp16')
 
-    print("PID of this process =", os.getpid())
+    print('PID of this process =', os.getpid())
     device = accelerator.device
-    #device = 'cuda:0'
-    print("device:", device)
+    print('device:', device)
     world_size = accelerator.state.num_processes
     distributed = not accelerator.state.distributed_type == 'NO'
     num_devices = torch.cuda.device_count()
-    if num_devices==0 or not distributed: num_devices = 1
+    if num_devices == 0 or not distributed:
+        num_devices = 1
     num_workers = num_devices
     print(accelerator.state)
 
-    print("distributed =",distributed, "num_devices =", num_devices, "local rank =", local_rank, "world size =", world_size, "data_type =", data_type)
+    print('distributed =', distributed, 'num_devices =', num_devices, 'local rank =', local_rank, 'world size =', world_size, 'data_type =', data_type)
     print = accelerator.print # only print if local_rank=0
 
     NeuroClips_ROOT = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
     args.data_dir = args.data_dir.replace('$NeuroClips_ROOT', NeuroClips_ROOT)
     args.model_dir = args.model_dir.replace('$NeuroClips_ROOT', NeuroClips_ROOT)
+    args.neuroclips_model_dir = args.neuroclips_model_dir.replace('$NeuroClips_ROOT', NeuroClips_ROOT)
 
     verify_necessary_files(args)
 
@@ -182,7 +180,7 @@ if __name__ == '__main__':
         img_augment = AugmentationSequential(
             kornia.augmentation.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1, p=0.3),
             same_on_batch=False,
-            data_keys=["input"],
+            data_keys=['input'],
         )
 
     subj_list = [args.subj]
@@ -202,12 +200,13 @@ if __name__ == '__main__':
     voxel_test = torch.load(f'{args.data_dir}/subj0{args.subj}_test_fmri.pt', map_location='cpu')
     voxel_test = torch.mean(voxel_test, dim = 1).unsqueeze(1)
     num_voxels_list = [voxel_train.shape[-1]]
+    print('Loaded all train fMRI frames to cpu!', voxel_train.shape)
+    print('Loaded all test fMRI frames to cpu!', voxel_test.shape)
 
     train_images = torch.load(f'{args.data_dir}/GT_train_3fps.pt', map_location='cpu')
     test_images = torch.load(f'{args.data_dir}/GT_test_3fps.pt', map_location='cpu')
-
-    print("Loaded all crucial train frames to cpu!", train_images.shape)
-    print("Loaded all crucial test frames to cpu!", test_images.shape)
+    print('Loaded all train image frames to cpu!', train_images.shape)
+    print('Loaded all test image frames to cpu!', test_images.shape)
 
     train_dl = {}
     train_dataset = CC2017_Dataset(voxel_train, train_images, istrain=True)
@@ -217,7 +216,7 @@ if __name__ == '__main__':
 
     num_samples_per_epoch = len(train_dataset) // num_devices
     num_iterations_per_epoch = num_samples_per_epoch // args.batch_size
-    print("batch_size =", args.batch_size, "num_iterations_per_epoch =", num_iterations_per_epoch, "num_samples_per_epoch =", num_samples_per_epoch)
+    print('batch_size =', args.batch_size, 'num_iterations_per_epoch =', num_iterations_per_epoch, 'num_samples_per_epoch =', num_samples_per_epoch)
 
     if args.blurry_recon:
         from diffusers import AutoencoderKL
@@ -251,7 +250,7 @@ if __name__ == '__main__':
             kornia.augmentation.RandomGrayscale(p=0.1),
             kornia.augmentation.RandomSolarize(p=0.1),
             kornia.augmentation.RandomResizedCrop((224, 224), scale=(.9, .9), ratio=(1, 1), p=1.0),
-            data_keys=["input"],
+            data_keys=['input'],
         )
 
     model = Neuroclips()
@@ -265,13 +264,13 @@ if __name__ == '__main__':
                                                seq_len=seq_len,
                                                n_blocks=args.n_blocks,
                                                clip_size=clip_emb_dim,
-                                               out_dim=clip_emb_dim * clip_seq_dim,
+                                               out_dim=clip_emb_dim*clip_seq_dim,
                                                blurry_recon=args.blurry_recon,
                                                clip_scale=args.clip_scale)
     model.fmri = Inception_Extension(h=256,
                                      in_dim=voxel_length,
                                      out_dim=voxel_length,
-                                     expand=args.fps * 2,
+                                     expand=args.fps*2,
                                      seq_len=seq_len)
 
     utils.count_params(model.backbone)
@@ -291,16 +290,17 @@ if __name__ == '__main__':
         )
     elif args.lr_scheduler_type == 'cycle':
         total_steps=int(np.floor(args.num_epochs * num_iterations_per_epoch))
-        print("total_steps", total_steps)
+        print('total_steps', total_steps)
         lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer,
             max_lr=args.max_lr,
             total_steps=total_steps,
             final_div_factor=1000,
-            last_epoch=-1, pct_start=2/args.num_epochs
+            last_epoch=-1,
+            pct_start=2/args.num_epochs
         )
 
-    print("\nDone with model preparations!")
+    print('\nDone with model preparations!')
     num_params = utils.count_params(model)
 
     epoch = 0
@@ -311,7 +311,7 @@ if __name__ == '__main__':
     model, optimizer, train_dl, lr_scheduler = accelerator.prepare(model, optimizer, train_dl, lr_scheduler)
     # leaving out test_dl since we will only have local_rank 0 device do evals
 
-    print(f"{model_name} starting with epoch {epoch} / {args.num_epochs}")
+    print(f'{model_name} starting with epoch {epoch} / {args.num_epochs}')
     progress_bar = tqdm(range(epoch, args.num_epochs), ncols=1200, disable=(local_rank!=0))
     test_image, test_voxel = None, None
     mse = nn.MSELoss()
@@ -402,7 +402,7 @@ if __name__ == '__main__':
                 if args.lr_scheduler_type is not None:
                     lr_scheduler.step()
                 step += 1
-                print(f'Training epoch: {epoch}, sample: {step * args.batch_size}, lr: {optimizer.param_groups[0]["lr"]}, loss: {loss.item():.4f}, loss_mean: {np.mean(losses[-(train_i+1):]):.4f}')
+                print(f'Training epoch: {epoch}, sample: {step * args.batch_size}, lr: {optimizer.param_groups[0]['lr']}, loss: {loss.item():.4f}, loss_mean: {np.mean(losses[-(train_i+1):]):.4f}')
 
         model.eval()
 
@@ -428,7 +428,7 @@ if __name__ == '__main__':
 
                     voxel = model.fmri(voxel).unsqueeze(1)
                     voxel_ridge = model.ridge1(voxel,0)
-                    blurry_image_enc_ = model.backbone(voxel_ridge, time= 40*fps*2)
+                    blurry_image_enc_ = model.backbone(voxel_ridge, time=40*args.fps*2)
 
                     # for some evals, only doing a subset of the samples per batch because of computational cost
                     #random_samps = np.random.choice(np.arange(len(image)), size=len(image)//6, replace=False)
@@ -442,21 +442,19 @@ if __name__ == '__main__':
                         print('PixCorr:', pixcorr.item())
                         test_losses.append(pixcorr.item())
 
-                print("-------------------------")
+                print('-------------------------')
 
         # Save model checkpoint and reconstruct
-        if test_blurry_pixcorr/30 > best_test:
-            best_test = test_blurry_pixcorr/30
-            print('new best test loss:',best_test)
-            save_ckpt(f'{args.model_dir}/{model_name}')
+        if test_blurry_pixcorr / len(test_dl) > best_test:
+            best_test = test_blurry_pixcorr / len(test_dl)
+            print('new best test correlation:', best_test)
+            save_ckpt(f'{args.neuroclips_model_dir}/{model_name}')
         else:
-            print('not best', test_blurry_pixcorr/30, 'best test loss is', best_test)
+            print('not best', test_blurry_pixcorr / len(test_dl), 'best test correlation is', best_test)
 
         # wait for other GPUs to catch up if needed
         accelerator.wait_for_everyone()
         torch.cuda.empty_cache()
         gc.collect()
 
-    print("\n===Finished!===\n")
-    # if ckpt_saving:
-    #     save_ckpt(f'{model_name}')
+    print('\n===Finished!===\n')

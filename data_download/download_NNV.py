@@ -28,7 +28,9 @@ download_commands = [
     f'wget -P {data_dir} https://huggingface.co/datasets/gongzx/cc2017_dataset/resolve/main/subj03_train_fmri.pt',
     f'wget -P {model_dir} https://huggingface.co/datasets/pscotti/mindeyev2/resolve/main/sd_image_var_autoenc.pth',
     f'wget -P {model_dir} https://huggingface.co/datasets/pscotti/mindeyev2/resolve/main/convnext_xlarge_alpha0.75_fullckpt.pth',
-    f'wget -O {model_dir}/final_subj01_pretrained_40sess_24bs_last.pth https://huggingface.co/datasets/pscotti/mindeyev2/resolve/main/train_logs/final_subj01_pretrained_40sess_24bs/last.pth',
+    f'wget -O {model_dir}/mindeyev2_final_subj01_pretrained_40sess_24bs_last.pth https://huggingface.co/datasets/pscotti/mindeyev2/resolve/main/train_logs/final_subj01_pretrained_40sess_24bs/last.pth',
+    f'wget -O {model_dir}/mindeyev2_bigG_to_L_epoch8.pth https://huggingface.co/datasets/pscotti/mindeyev2/resolve/main/bigG_to_L_epoch8.pth',
+    f'wget -O {model_dir}/mindeyev2_unclip6_epoch0_step110000.ckpt https://huggingface.co/datasets/pscotti/mindeyev2/resolve/main/unclip6_epoch0_step110000.ckpt',
 ]
 
 if __name__ == '__main__':

@@ -13,7 +13,8 @@ from common import CC2017_Dataset, CLIPProj, Neuroclips, RidgeRegression
 from Semantic import Semantic_Reconstruction
 
 # SDXL unCLIP requires code from https://github.com/Stability-AI/generative-models/tree/main
-sys.path.append('generative_models/')
+import_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(import_dir, 'generative_models/'))
 from generative_models.sgm.modules.encoders.modules import FrozenOpenCLIPImageEmbedder # bigG embedder from OpenCLIP
 
 # tf32 data type is faster than standard float32
@@ -38,7 +39,7 @@ def verify_necessary_files(args, verbose: bool = True):
     assert os.path.isfile(f'{args.data_dir}/coco_tokens_avg_proj.pth')
     assert os.path.isfile(f'{args.model_dir}/sd_image_var_autoenc.pth')
     assert os.path.isfile(f'{args.model_dir}/convnext_xlarge_alpha0.75_fullckpt.pth')
-    assert os.path.isfile(f'{args.model_dir}/final_subj01_pretrained_40sess_24bs_last.pth')
+    assert os.path.isfile(f'{args.model_dir}/mindeyev2_final_subj01_pretrained_40sess_24bs_last.pth')
     if verbose is True:
         print('Verified: all necessary files are available!\n')
     return
@@ -55,19 +56,19 @@ def save_ckpt(ckpt_path):
             'test_losses': test_losses,
             'lrs': lrs,
             }, ckpt_path)
-    print(f"\n---saved {ckpt_path} ckpt!---\n")
+    print(f'\n---saved {ckpt_path} ckpt!---\n')
     return
 
 def load_ckpt(ckpt_path, load_lr=True, load_optimizer=True, load_epoch=True, strict=True, multisubj_loading=False):
-    print(f"\n---loading {ckpt_path} ckpt---\n")
+    print(f'\n---loading {ckpt_path} ckpt---\n')
     checkpoint = torch.load(ckpt_path, map_location='cpu')
     state_dict = checkpoint['model_state_dict']
     if multisubj_loading: # remove incompatible ridge layer that will otherwise error
         state_dict.pop('ridge.linears.0.weight',None)
     model.load_state_dict(state_dict, strict=strict)
     if load_epoch:
-        globals()["epoch"] = checkpoint['epoch']
-        print("Epoch", epoch)
+        globals()['epoch'] = checkpoint['epoch']
+        print('Epoch', epoch)
     if load_optimizer:
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     if load_lr:
@@ -77,77 +78,76 @@ def load_ckpt(ckpt_path, load_lr=True, load_optimizer=True, load_epoch=True, str
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Model Training Configuration")
-    # parser.add_argument(
-    #     "--model_name", type=str, default="testing",
-    #     help="name of model, used for ckpt saving and wandb logging (if enabled)",
-    # )
+    parser = argparse.ArgumentParser(description='Model Training Configuration')
     parser.add_argument(
-        "--subj", type=int, default=1, choices=[1,2,3],
-        help="Validate on which subject?",
+        '--subj', type=int, default=1, choices=[1,2,3],
+        help='Validate on which subject?',
     )
     parser.add_argument(
-        "--use_prior", action=argparse.BooleanOptionalAction, default=False,
-        help="whether to train diffusion prior (True) or just rely on retrieval part of the pipeline (False)",
+        '--use_prior', action=argparse.BooleanOptionalAction, default=False,
+        help='whether to train diffusion prior (True) or just rely on retrieval part of the pipeline (False)',
     )
     parser.add_argument(
-        "--batch_size", type=int, default=10,
-        help="Batch size can be increased by 10x if only training retreival submodule and not diffusion prior",
+        '--batch_size', type=int, default=10,
+        help='Batch size can be increased by 10x if only training retreival submodule and not diffusion prior',
     )
     parser.add_argument(
-        "--mixup_pct", type=float, default=.33,
-        help="proportion of way through training when to switch from BiMixCo to SoftCLIP",
+        '--mixup_pct', type=float, default=.33,
+        help='proportion of way through training when to switch from BiMixCo to SoftCLIP',
     )
     parser.add_argument(
-        "--blurry_recon", action=argparse.BooleanOptionalAction, default=False,
-        help="whether to output blurry reconstructions",
+        '--blurry_recon', action=argparse.BooleanOptionalAction, default=False,
+        help='whether to output blurry reconstructions',
     )
     parser.add_argument(
-        "--blur_scale", type=float, default=.5,
-        help="multiply loss from blurry recons by this number",
+        '--blur_scale', type=float, default=.5,
+        help='multiply loss from blurry recons by this number',
     )
     parser.add_argument(
-        "--clip_scale", type=float, default=1.,
-        help="multiply contrastive loss by this number",
+        '--clip_scale', type=float, default=1.,
+        help='multiply contrastive loss by this number',
     )
     parser.add_argument(
-        "--prior_scale", type=float, default=30,
-        help="multiply diffusion prior loss by this",
+        '--prior_scale', type=float, default=30,
+        help='multiply diffusion prior loss by this',
     )
     parser.add_argument(
-        "--use_image_aug", action=argparse.BooleanOptionalAction, default=False,
-        help="whether to use image augmentation",
+        '--use_image_aug', action=argparse.BooleanOptionalAction, default=False,
+        help='whether to use image augmentation',
     )
     parser.add_argument(
-        "--num_epochs", type=int, default=150,
-        help="number of epochs of training",
+        '--num_epochs', type=int, default=150,
+        help='number of epochs of training',
     )
     parser.add_argument(
-        "--n_blocks", type=int, default=4,
+        '--n_blocks', type=int, default=4,
     )
     parser.add_argument(
-        "--hidden_dim", type=int, default=4096,
+        '--hidden_dim', type=int, default=4096,
     )
     parser.add_argument(
-        "--lr_scheduler_type", type=str, default='cycle', choices=['cycle','linear'],
+        '--lr_scheduler_type', type=str, default='cycle', choices=['cycle','linear'],
     )
     parser.add_argument(
-        "--ckpt_saving", action=argparse.BooleanOptionalAction, default=True,
+        '--ckpt_saving', action=argparse.BooleanOptionalAction, default=True,
     )
     parser.add_argument(
-        "--seed", type=int, default=42,
+        '--seed', type=int, default=42,
     )
     parser.add_argument(
-        "--max_lr", type=float, default=3e-4,
+        '--max_lr', type=float, default=3e-4,
     )
     parser.add_argument(
-        "--use_text", action=argparse.BooleanOptionalAction, default=False,
+        '--use_text', action=argparse.BooleanOptionalAction, default=False,
     )
     parser.add_argument(
-        "--data_dir", type=str, default='$NeuroClips_ROOT/data/',
+        '--data_dir', type=str, default='$NeuroClips_ROOT/data/',
     )
     parser.add_argument(
-        "--model_dir", type=str, default='$NeuroClips_ROOT/checkpoints/',
+        '--model_dir', type=str, default='$NeuroClips_ROOT/checkpoints/',
+    )
+    parser.add_argument(
+        '--neuroclips_model_dir', type=str, default='$NeuroClips_ROOT/outputs/checkpoints/',
     )
 
     args = parser.parse_args()
@@ -158,33 +158,31 @@ if __name__ == '__main__':
         local_rank = 0
     else:
         local_rank = int(local_rank)
-    print("LOCAL RANK ", local_rank)
+    print('LOCAL RANK ', local_rank)
 
     data_type = torch.float16 # change depending on your mixed_precision
-    num_devices = torch.cuda.device_count()
-    if num_devices == 0:
-        num_devices = 1
 
-    # First use "accelerate config" in terminal and setup using deepspeed stage 2 with CPU offloading!
-    accelerator = Accelerator(split_batches=False, mixed_precision="fp16")
+    # First use 'accelerate config' in terminal and setup using deepspeed stage 2 with CPU offloading!
+    accelerator = Accelerator(split_batches=False, mixed_precision='fp16')
 
-    print("PID of this process =", os.getpid())
+    print('PID of this process =', os.getpid())
     device = accelerator.device
-    #device = 'cuda:0'
-    print("device:", device)
+    print('device:', device)
     world_size = accelerator.state.num_processes
     distributed = not accelerator.state.distributed_type == 'NO'
     num_devices = torch.cuda.device_count()
-    if num_devices==0 or not distributed: num_devices = 1
+    if num_devices == 0 or not distributed:
+        num_devices = 1
     num_workers = num_devices
     print(accelerator.state)
 
-    print("distributed =", distributed, "num_devices =", num_devices, "local rank =", local_rank, "world size =", world_size, "data_type =", data_type)
+    print('distributed =', distributed, 'num_devices =', num_devices, 'local rank =', local_rank, 'world size =', world_size, 'data_type =', data_type)
     print = accelerator.print # only print if local_rank=0
 
     NeuroClips_ROOT = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
     args.data_dir = args.data_dir.replace('$NeuroClips_ROOT', NeuroClips_ROOT)
     args.model_dir = args.model_dir.replace('$NeuroClips_ROOT', NeuroClips_ROOT)
+    args.neuroclips_model_dir = args.neuroclips_model_dir.replace('$NeuroClips_ROOT', NeuroClips_ROOT)
 
     verify_necessary_files(args)
 
@@ -192,7 +190,7 @@ if __name__ == '__main__':
     utils.seed_everything(args.seed)
 
     if args.use_prior:
-        model_name_backbone = f'video_subj0{args.subj}_SR_backbone.pth'
+        model_name_prior = f'video_subj0{args.subj}_SR_backbone.pth'
         model_name = f'video_subj0{args.subj}_SR.pth'
     else:
         model_name = f'video_subj0{args.subj}_SR_backbone.pth'
@@ -204,7 +202,7 @@ if __name__ == '__main__':
         img_augment = AugmentationSequential(
             kornia.augmentation.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1, p=0.3),
             same_on_batch=False,
-            data_keys=["input"],
+            data_keys=['input'],
         )
 
     subj_list = [args.subj]
@@ -226,17 +224,18 @@ if __name__ == '__main__':
     voxel_test = torch.load(f'{args.data_dir}/subj0{args.subj}_test_fmri.pt', map_location='cpu')
     voxel_test = torch.mean(voxel_test, dim = 1).unsqueeze(1)
     num_voxels_list = [voxel_train.shape[-1]]
+    print('Loaded all train fMRI frames to cpu!', voxel_train.shape)
+    print('Loaded all test fMRI frames to cpu!', voxel_test.shape)
 
     train_images = torch.load(f'{args.data_dir}/GT_train_3fps.pt', map_location='cpu')
     test_images = torch.load(f'{args.data_dir}/GT_test_3fps.pt', map_location='cpu')
+    print('Loaded all train image frames to cpu!', train_images.shape)
+    print('Loaded all test image frames to cpu!', test_images.shape)
+
     train_text = torch.load(f'{args.data_dir}/GT_train_caption_emb.pt', map_location='cpu')
     test_text = torch.load(f'{args.data_dir}/GT_test_caption_emb.pt', map_location='cpu')
-
-    print("Loaded all crucial train frames to cpu!", train_images.shape)
-    print("Loaded all crucial test frames to cpu!", test_images.shape)
-
-    print("Loaded all crucial train captions to cpu!", train_text.shape)
-    print("Loaded all crucial test captions to cpu!", test_text.shape)
+    print('Loaded all train image captions to cpu!', train_text.shape)
+    print('Loaded all test image captions to cpu!', test_text.shape)
 
     train_dl = {}
     train_dataset = CC2017_Dataset(voxel_train, train_images, train_text, istrain=True)
@@ -246,11 +245,11 @@ if __name__ == '__main__':
 
     num_samples_per_epoch = len(train_dataset) // num_devices
     num_iterations_per_epoch = num_samples_per_epoch // args.batch_size
-    print("batch_size =", args.batch_size, "num_iterations_per_epoch =", num_iterations_per_epoch, "num_samples_per_epoch =", num_samples_per_epoch)
+    print('batch_size =', args.batch_size, 'num_iterations_per_epoch =', num_iterations_per_epoch, 'num_samples_per_epoch =', num_samples_per_epoch)
 
     clip_img_embedder = FrozenOpenCLIPImageEmbedder(
-        arch="ViT-bigG-14",
-        version="laion2b_s39b_b160k",
+        arch='ViT-bigG-14',
+        version='laion2b_s39b_b160k',
         output_tokens=True,
         only_tokens=True,
     )
@@ -289,7 +288,7 @@ if __name__ == '__main__':
             kornia.augmentation.RandomGrayscale(p=0.1),
             kornia.augmentation.RandomSolarize(p=0.1),
             kornia.augmentation.RandomResizedCrop((224, 224), scale=(.9, .9), ratio=(1, 1), p=1.0),
-            data_keys=["input"],
+            data_keys=['input'],
         )
 
     model = Neuroclips()
@@ -299,7 +298,7 @@ if __name__ == '__main__':
                                              seq_len=seq_len,
                                              n_blocks=args.n_blocks,
                                              clip_size=clip_emb_dim,
-                                             out_dim=clip_emb_dim * clip_seq_dim,
+                                             out_dim=clip_emb_dim*clip_seq_dim,
                                              blurry_recon=args.blurry_recon,
                                              clip_scale=args.clip_scale)
     utils.count_params(model.backbone)
@@ -315,7 +314,7 @@ if __name__ == '__main__':
                 heads=clip_emb_dim // 52,
                 causal=False,
                 num_tokens=clip_seq_dim,
-                learned_query_mode="pos_emb",
+                learned_query_mode='pos_emb',
             )
 
         model.diffusion_prior = BrainDiffusionPrior(
@@ -330,12 +329,11 @@ if __name__ == '__main__':
         utils.count_params(model.diffusion_prior)
         utils.count_params(model)
 
-    if args.use_prior:
+    if not args.use_prior:
+        print('\n---Not using prior. Resuming from mindeyev2 ckpt---\n')
 
-        print("\n---resuming from backbone ckpt---\n")
-
-        # You can choose to load the pre-trained backbone from MindEye2, which will accelerate your neuroclips' convergence.
-        checkpoint = torch.load(f'{args.model_dir}/final_subj01_pretrained_40sess_24bs_last.pth', map_location='cpu')
+        # Initialize the backbone with MindEye2.
+        checkpoint = torch.load(f'{args.model_dir}/mindeyev2_final_subj01_pretrained_40sess_24bs_last.pth', map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
         del checkpoint
 
@@ -343,21 +341,24 @@ if __name__ == '__main__':
         model.clipproj = CLIPProj()
         utils.count_params(model.ridge)
         utils.count_params(model)
-
-        checkpoint = torch.load(f'{args.model_dir}/{model_name_backbone}', map_location='cpu')
-        model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-        del checkpoint
 
     else:
-        print("\n---resuming from last.pth ckpt---\n")
-        checkpoint = torch.load(f'{args.model_dir}/final_subj01_pretrained_40sess_24bs_last.pth', map_location='cpu')
+        print('\n---Using prior. Resuming from our prior training ckpt---\n')
+
+        # Initialize the backbone with MindEye2.
+        checkpoint = torch.load(f'{args.model_dir}/mindeyev2_final_subj01_pretrained_40sess_24bs_last.pth', map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
         del checkpoint
 
+        # Initialize the regression and projector from prior training.
         model.ridge = RidgeRegression(num_voxels_list, out_features=args.hidden_dim, seq_len=seq_len)
         model.clipproj = CLIPProj()
         utils.count_params(model.ridge)
         utils.count_params(model)
+
+        checkpoint = torch.load(f'{args.neuroclips_model_dir}/{model_name_prior}', map_location='cpu')
+        model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+        del checkpoint
 
     # test on subject 1 with fake data
     if args.use_prior:
@@ -384,16 +385,17 @@ if __name__ == '__main__':
         )
     elif args.lr_scheduler_type == 'cycle':
         total_steps=int(np.floor(args.num_epochs * num_iterations_per_epoch))
-        print("total_steps", total_steps)
+        print('total_steps', total_steps)
         lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer,
             max_lr=args.max_lr,
             total_steps=total_steps,
             final_div_factor=1000,
-            last_epoch=-1, pct_start=2/args.num_epochs
+            last_epoch=-1,
+            pct_start=2/args.num_epochs
         )
 
-    print("\nDone with model preparations!")
+    print('\nDone with model preparations!')
     num_params = utils.count_params(model)
 
 
@@ -406,7 +408,7 @@ if __name__ == '__main__':
     model, optimizer, *train_dls, lr_scheduler = accelerator.prepare(model, optimizer, *train_dls, lr_scheduler)
     # leaving out test_dl since we will only have local_rank 0 device do evals
 
-    print(f"{model_name} starting with epoch {epoch} / {args.num_epochs}")
+    print(f'{model_name} starting with epoch {epoch} / {args.num_epochs}')
     progress_bar = tqdm(range(epoch, args.num_epochs), ncols=1200, disable=(local_rank!=0))
     test_image, test_voxel = None, None
     mse = nn.MSELoss()
@@ -451,11 +453,11 @@ if __name__ == '__main__':
 
                     if epoch < int(args.mixup_pct * args.num_epochs):
                         voxel, perm, betas, select = utils.mixco(voxel)
-                        perm_iters[f"subj0{subj_list[s]}_iter{iter_idx}"] = perm
-                        betas_iters[f"subj0{subj_list[s]}_iter{iter_idx}"] = betas
-                        select_iters[f"subj0{subj_list[s]}_iter{iter_idx}"] = select
+                        perm_iters[f'subj0{subj_list[s]}_iter{iter_idx}'] = perm
+                        betas_iters[f'subj0{subj_list[s]}_iter{iter_idx}'] = betas
+                        select_iters[f'subj0{subj_list[s]}_iter{iter_idx}'] = select
 
-                    voxel_iters[f"subj0{subj_list[s]}_iter{iter_idx}"] = voxel
+                    voxel_iters[f'subj0{subj_list[s]}_iter{iter_idx}'] = voxel
 
                     if iter_idx >= num_iterations_per_epoch-1:
                         break
@@ -467,8 +469,8 @@ if __name__ == '__main__':
                 optimizer.zero_grad()
                 loss=0.
 
-                voxel_list = [voxel_iters[f"subj0{s}_iter{train_i}"].detach().to(device) for s in subj_list]
-                voxel_list = [voxel_iters[f"subj0{s}_iter{train_i}"].detach() for s in subj_list]
+                voxel_list = [voxel_iters[f'subj0{s}_iter{train_i}'].detach().to(device) for s in subj_list]
+                voxel_list = [voxel_iters[f'subj0{s}_iter{train_i}'].detach() for s in subj_list]
                 image = image_iters[train_i].detach()
                 text = text_iters[train_i].detach()
                 image = image.to(device)
@@ -480,11 +482,11 @@ if __name__ == '__main__':
                 assert not torch.any(torch.isnan(clip_target))
 
                 if epoch < int(args.mixup_pct * args.num_epochs):
-                    perm_list = [perm_iters[f"subj0{s}_iter{train_i}"].detach().to(device) for s in subj_list]
+                    perm_list = [perm_iters[f'subj0{s}_iter{train_i}'].detach().to(device) for s in subj_list]
                     perm = torch.cat(perm_list, dim=0)
-                    betas_list = [betas_iters[f"subj0{s}_iter{train_i}"].detach().to(device) for s in subj_list]
+                    betas_list = [betas_iters[f'subj0{s}_iter{train_i}'].detach().to(device) for s in subj_list]
                     betas = torch.cat(betas_list, dim=0)
-                    select_list = [select_iters[f"subj0{s}_iter{train_i}"].detach().to(device) for s in subj_list]
+                    select_list = [select_iters[f'subj0{s}_iter{train_i}'].detach().to(device) for s in subj_list]
                     select = torch.cat(select_list, dim=0)
 
                 voxel_ridge= model.ridge(voxel_list[0],0)
@@ -585,7 +587,7 @@ if __name__ == '__main__':
                 if args.lr_scheduler_type is not None:
                     lr_scheduler.step()
                 step += 1
-                print(f'Training epoch: {epoch}, sample: {step * args.batch_size}, lr: {optimizer.param_groups[0]["lr"]}, loss_clip: {loss_clip.item():.4f}, loss: {loss.item():.4f}, loss_mean: {np.mean(losses[-(train_i+1):]):.4f}')
+                print(f'Training epoch: {epoch}, sample: {step * args.batch_size}, lr: {optimizer.param_groups[0]['lr']}, loss_clip: {loss_clip.item():.4f}, loss: {loss.item():.4f}, loss_mean: {np.mean(losses[-(train_i+1):]):.4f}')
 
         model.eval()
 
@@ -682,14 +684,14 @@ if __name__ == '__main__':
                     test_losses.append(loss.item())
 
                 # if utils.is_interactive(): clear_output(wait=True)
-                print("-------------------------")
+                print('-------------------------')
 
         # Save model checkpoint and reconstruct
         if loss_all/4 < best_test_loss:
             best_test_loss = loss_all/4
             print('new best test loss:',best_test_loss)
             if not args.use_prior:
-                save_ckpt(f'{args.model_dir}/{model_name}')
+                save_ckpt(f'{args.neuroclips_model_dir}/{model_name}')
         else:
             print('not best:', loss_all/4, 'best test loss is', best_test_loss)
 
@@ -698,6 +700,6 @@ if __name__ == '__main__':
         torch.cuda.empty_cache()
         gc.collect()
 
-    print("\n===Finished!===\n")
+    print('\n===Finished!===\n')
     if args.ckpt_saving and args.use_prior:
-        save_ckpt(f'{args.model_dir}/{model_name}')
+        save_ckpt(f'{args.neuroclips_model_dir}/{model_name}')

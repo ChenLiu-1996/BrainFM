@@ -13,7 +13,7 @@ import webdataset as wds
 import json
 from PIL import Image
 import requests
-import time 
+import time
 
 #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -114,7 +114,7 @@ def get_non_diagonals(a):
     a=a.fill_diagonal_(-1)
     return a
 
-def gather_features(image_features, voxel_features, accelerator):  
+def gather_features(image_features, voxel_features, accelerator):
     all_image_features = accelerator.gather(image_features.contiguous())
     if voxel_features is not None:
         all_voxel_features = accelerator.gather(voxel_features.contiguous())
@@ -128,13 +128,13 @@ def soft_clip_loss(preds, targs, temp=0.125):
     brain_clip = (preds @ targs.T)/temp
     loss1 = -(brain_clip.log_softmax(-1) * clip_clip.softmax(-1)).sum(-1).mean()
     loss2 = -(brain_clip.T.log_softmax(-1) * clip_clip.softmax(-1)).sum(-1).mean()
-    
+
     loss = (loss1 + loss2)/2
     return loss
 
 def soft_siglip_loss(preds, targs, temp, bias):
     temp = torch.exp(temp)
-    
+
     logits = (preds @ targs.T) * temp + bias
     # diagonals (aka paired samples) should be >0 and off-diagonals <0
     labels = (targs @ targs.T) - 1 + (torch.eye(len(targs)).to(targs.dtype).to(targs.device))
@@ -146,14 +146,14 @@ def soft_siglip_loss(preds, targs, temp, bias):
 
 def mixco_hard_siglip_loss(preds, targs, temp, bias, perm, betas):
     temp = torch.exp(temp)
-    
+
     probs = torch.diag(betas)
     probs[torch.arange(preds.shape[0]).to(preds.device), perm] = 1 - betas
 
     logits = (preds @ targs.T) * temp + bias
     labels = probs * 2 - 1
     #labels = torch.eye(len(targs)).to(targs.dtype).to(targs.device) * 2 - 1
-    
+
     loss1 = -torch.sum(nn.functional.logsigmoid(logits * labels)) / len(preds)
     loss2 = -torch.sum(nn.functional.logsigmoid(logits.T * labels)) / len(preds)
     loss = (loss1 + loss2)/2
@@ -179,10 +179,10 @@ def mixco_clip_target(clip_target, perm, select, betas):
         clip_target_shuffle[select] * (1 - betas[select]).reshape(-1, 1)
     return clip_target
 
-def mixco_nce(preds, targs, temp=0.1, perm=None, betas=None, select=None, distributed=False, 
+def mixco_nce(preds, targs, temp=0.1, perm=None, betas=None, select=None, distributed=False,
               accelerator=None, local_rank=None, bidirectional=True):
     brain_clip = (preds @ targs.T)/temp
-    
+
     if perm is not None and betas is not None and select is not None:
         probs = torch.diag(betas)
         probs[torch.arange(preds.shape[0]).to(preds.device), perm] = 1 - betas
@@ -198,13 +198,13 @@ def mixco_nce(preds, targs, temp=0.1, perm=None, betas=None, select=None, distri
             loss2 = F.cross_entropy(brain_clip.T, torch.arange(brain_clip.shape[0]).to(brain_clip.device))
             loss = (loss + loss2)/2
         return loss
-    
+
 def count_params(model):
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('param counts:\n{:,} total\n{:,} trainable'.format(total, trainable))
     return trainable
-    
+
 def check_loss(loss):
     if loss.isnan().any():
         raise ValueError('NaN loss')
@@ -219,7 +219,8 @@ def resize(img, img_size=128):
 pixcorr_preprocess = transforms.Compose([
     transforms.Resize(425, interpolation=transforms.InterpolationMode.BILINEAR),
 ])
-def pixcorr(images,brains,nan=True):
+
+def pixcorr(images, brains, nan=True):
     all_images_flattened = pixcorr_preprocess(images).reshape(len(images), -1)
     all_brain_recons_flattened = pixcorr_preprocess(brains).view(len(brains), -1)
     if nan:
@@ -261,7 +262,7 @@ def unclip_recon(x, diffusion_engine, vector_suffix,
     with torch.no_grad(), torch.cuda.amp.autocast(dtype=torch.float16), diffusion_engine.ema_scope():
         z = torch.randn(num_samples,4,96,96).to(device) # starting noise, can change to VAE outputs of initial image for img2img
 
-        # clip_img_tokenized = clip_img_embedder(image) 
+        # clip_img_tokenized = clip_img_embedder(image)
         # tokens = clip_img_tokenized
         token_shape = x.shape
         tokens = x
@@ -295,15 +296,15 @@ def unclip_recon(x, diffusion_engine, vector_suffix,
         # samples = torch.clamp((samples_x + .5) / 2.0, min=0.0, max=1.0)
         return samples
 
-#  Numpy Utility 
+#  Numpy Utility
 def iterate_range(start, length, batchsize):
     batch_count = int(length // batchsize )
     residual = int(length % batchsize)
     for i in range(batch_count):
         yield range(start+i*batchsize, start+(i+1)*batchsize),batchsize
     if(residual>0):
-        yield range(start+batch_count*batchsize,start+length),residual 
-        
+        yield range(start+batch_count*batchsize,start+length),residual
+
 # Torch fwRF
 def get_value(_x):
     return np.copy(_x.data.cpu().numpy())
@@ -316,6 +317,6 @@ def soft_cont_loss(student_preds, teacher_preds, teacher_aug_preds, temp=0.125):
 
     loss1 = -(student_teacher_aug.log_softmax(-1) * teacher_teacher_aug.softmax(-1)).sum(-1).mean()
     loss2 = -(student_teacher_aug_t.log_softmax(-1) * teacher_teacher_aug_t.softmax(-1)).sum(-1).mean()
-    
+
     loss = (loss1 + loss2)/2
     return loss

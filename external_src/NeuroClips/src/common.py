@@ -32,6 +32,24 @@ class CLIPProj(nn.Module):
         return x
 
 
+class CLIPConverter(torch.nn.Module):
+    def __init__(self,
+                 clip_seq_dim: int,
+                 clip_emb_dim: int,
+                 clip_text_seq_dim: int,
+                 clip_text_emb_dim: int):
+
+        super(CLIPConverter, self).__init__()
+        self.linear1 = nn.Linear(clip_seq_dim, clip_text_seq_dim)
+        self.linear2 = nn.Linear(clip_emb_dim, clip_text_emb_dim)
+
+    def forward(self, x):
+        x = x.permute(0, 2, 1)
+        x = self.linear1(x)
+        x = self.linear2(x.permute(0, 2, 1))
+        return x
+
+
 class Neuroclips(nn.Module):
     def __init__(self):
         super(Neuroclips, self).__init__()
