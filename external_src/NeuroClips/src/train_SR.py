@@ -266,7 +266,6 @@ if __name__ == '__main__':
             layers_per_block=2,
             sample_size=256,
         )
-
         ckpt = torch.load(f'{args.model_dir}/sd_image_var_autoenc.pth')
         autoenc.load_state_dict(ckpt)
 
@@ -280,8 +279,8 @@ if __name__ == '__main__':
         cnx.eval()
         cnx.to(device)
 
-        mean = torch.tensor([0.485, 0.456, 0.406]).to(device).reshape(1,3,1,1)
-        std = torch.tensor([0.228, 0.224, 0.225]).to(device).reshape(1,3,1,1)
+        mean = torch.tensor([0.485, 0.456, 0.406]).to(device).reshape(1, 3, 1, 1)
+        std = torch.tensor([0.228, 0.224, 0.225]).to(device).reshape(1, 3, 1, 1)
 
         blur_augs = AugmentationSequential(
             kornia.augmentation.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1, p=0.8),
@@ -650,8 +649,6 @@ if __name__ == '__main__':
                             loss += utils.mixco_nce(pred_text_norm, target_text_norm, perm=None, betas=None, select=None)* text_scale
                             labels = torch.arange(len(pred_text_norm)).to(pred_text_norm.device)
                             text_fwd_percent_correct += utils.topk(utils.batchwise_cosine_similarity(pred_text_norm, target_text_norm), labels, k=5).item()
-
-
 
                     '''
                     if blurry_recon:

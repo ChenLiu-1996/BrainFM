@@ -242,8 +242,8 @@ if __name__ == '__main__':
         cnx.eval()
         cnx.to(device)
 
-        mean = torch.tensor([0.485, 0.456, 0.406]).to(device).reshape(1,3,1,1)
-        std = torch.tensor([0.228, 0.224, 0.225]).to(device).reshape(1,3,1,1)
+        mean = torch.tensor([0.485, 0.456, 0.406]).to(device).reshape(1, 3, 1, 1)
+        std = torch.tensor([0.228, 0.224, 0.225]).to(device).reshape(1, 3, 1, 1)
 
         blur_augs = AugmentationSequential(
             kornia.augmentation.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1, p=0.8),

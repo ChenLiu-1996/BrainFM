@@ -4,9 +4,9 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
 from torchvision import transforms
 from accelerate import Accelerator
+from tqdm import tqdm
 
 from common import CC2017_Dataset, CLIPProj, Neuroclips, RidgeRegression, CLIPConverter
 from Semantic import Semantic_Reconstruction, PriorNetwork, BrainDiffusionPrior
@@ -69,6 +69,9 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--output_frame_dir', type=str, default='$NeuroClips_ROOT/outputs/frames/',
+    )
+    parser.add_argument(
+        '--plotting', action='store_true',
     )
 
     args = parser.parse_args()
@@ -254,18 +257,14 @@ if __name__ == '__main__':
     all_clipvoxels = None
     all_textvoxels = None
 
-    num_samples_per_image = 1
-    assert num_samples_per_image == 1
-    plotting = False
     with torch.no_grad(), torch.cuda.amp.autocast(dtype=torch.float16):
-        for voxel, image in test_dl:
+        for batch_idx, (voxel, image) in enumerate(tqdm(test_dl)):
 
             voxel = voxel.unsqueeze(1).to(device)
             voxel = voxel.half()
 
             voxel_ridge = model.ridge(voxel, 0) # 0th index of subj_list
-            backbone, clip_voxels, blurry_image_enc = model.backbone(voxel_ridge)
-            backbone = clip_voxels
+            _, clip_voxels, blurry_image_enc = model.backbone(voxel_ridge)
 
             # Save retrieval submodule outputs
             if all_clipvoxels is None:
@@ -275,8 +274,8 @@ if __name__ == '__main__':
 
             # Feed voxels through OpenCLIP-bigG diffusion prior
             prior_out = model.diffusion_prior.p_sample_loop(
-                backbone.shape,
-                text_cond=dict(text_embed=backbone),
+                clip_voxels.shape,
+                text_cond=dict(text_embed=clip_voxels),
                 cond_scale=1.0,
                 timesteps=20)
 
@@ -289,43 +288,43 @@ if __name__ == '__main__':
             print(generated_caption)
 
             # Feed diffusion prior outputs through unCLIP
-            for i in range(len(voxel)):
-                samples = utils.unclip_recon(prior_out[[i]],
-                                    diffusion_engine,
-                                    vector_suffix,
-                                    num_samples=num_samples_per_image,
-                                    device = device)
+            for instance_idx in range(len(voxel)):
+                samples = utils.unclip_recon(
+                    prior_out[[instance_idx]],
+                    diffusion_engine,
+                    vector_suffix,
+                    num_samples=1,
+                    device = device)
                 if all_recons is None:
                     all_recons = samples.cpu()
                 else:
                     all_recons = torch.vstack((all_recons, samples.cpu()))
 
-                if plotting:
-                    for s in range(num_samples_per_image):
-                        plt.figure(figsize=(2,2))
-                        plt.imshow(transforms.ToPILImage()(samples[s]))
-                        plt.axis('off')
-                        plt.show()
+                if args.plotting and batch_idx % (len(test_dl) // 5) == 0:
+                    fig = plt.figure(figsize=(8, 8))
+                    ax = fig.add_subplot(1, 1, 1)
+                    ax.imshow(transforms.ToPILImage()(samples[0]))
+                    ax.axis('off')
+                    fig.tight_layout(pad=2)
+                    fig.savefig(f'{args.output_frame_dir}/video_subj0{args.subj}_image_clean_batch_{batch_idx}.png')
 
                 if args.blurry_recon:
                     blurred_image = (autoenc.decode(blurry_image_enc[0]/0.18215).sample/ 2 + 0.5).clamp(0, 1)
 
-                    for i in range(len(voxel)):
-                        im = torch.Tensor(blurred_image[i])
+                    for instance_idx in range(len(voxel)):
+                        im = torch.Tensor(blurred_image[instance_idx])
                         if all_blurryrecons is None:
                             all_blurryrecons = im[None].cpu()
                         else:
                             all_blurryrecons = torch.vstack((all_blurryrecons, im[None].cpu()))
 
-                        if plotting:
-                            plt.figure(figsize=(2, 2))
-                            plt.imshow(transforms.ToPILImage()(im))
-                            plt.axis('off')
-                            plt.show()
-
-                if plotting:
-                    print(model_name)
-                    raise ValueError('We do not actually want to run the whole thing with plotting=True.')
+                        if args.plotting and batch_idx % (len(test_dl) // 5) == 0:
+                            fig = plt.figure(figsize=(8, 8))
+                            ax = fig.add_subplot(1, 1, 1)
+                            ax.imshow(transforms.ToPILImage()(im))
+                            ax.axis('off')
+                            fig.tight_layout(pad=2)
+                            fig.savefig(f'{args.output_frame_dir}/video_subj0{args.subj}_image_blurry_batch_{batch_idx}.png')
 
     # resize outputs before saving
     imsize = 256
@@ -337,8 +336,8 @@ if __name__ == '__main__':
     print(all_recons.shape)
 
     if args.blurry_recon:
-        torch.save(all_blurryrecons, f'{args.output_frame_dir}/{model_name}/{model_name}_all_blurryrecons.pt')
-    torch.save(all_recons, f'{args.output_frame_dir}/{model_name}/{model_name}_all_recons.pt')
-    torch.save(all_predcaptions, f'{args.output_frame_dir}/{model_name}/{model_name}_all_predcaptions.pt')
-    torch.save(all_clipvoxels, f'{args.output_frame_dir}/{model_name}/{model_name}_all_clipvoxels.pt')
-    print(f'saved {model_name} outputs!')
+        torch.save(all_blurryrecons, f'{args.output_frame_dir}/video_subj0{args.subj}_all_blurryrecons.pt')
+    torch.save(all_recons, f'{args.output_frame_dir}/video_subj0{args.subj}_all_recons.pt')
+    torch.save(all_predcaptions, f'{args.output_frame_dir}/video_subj0{args.subj}_all_predcaptions.pt')
+    torch.save(all_clipvoxels, f'{args.output_frame_dir}/video_subj0{args.subj}_all_clipvoxels.pt')
+    print(f'saved video_subj0{args.subj} outputs!')
