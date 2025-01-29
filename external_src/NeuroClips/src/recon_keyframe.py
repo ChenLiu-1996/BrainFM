@@ -264,8 +264,9 @@ if __name__ == '__main__':
 
     with torch.no_grad(), torch.cuda.amp.autocast(dtype=torch.float16):
         for batch_idx, (voxel, image) in enumerate(tqdm(test_dl)):
-
-            voxel = voxel.half().to(device)
+            voxel = voxel.to(device)
+            if device != torch.device('cpu'):
+                voxel = voxel.half()
 
             voxel_ridge = model.ridge(voxel, 0) # 0th index of subj_list
             _, clip_voxels, blurry_image_enc = model.backbone(voxel_ridge)

@@ -209,6 +209,8 @@ if __name__ == '__main__':
     utils.count_params(model.fmri)
     utils.count_params(model)
 
+    model.to(device)
+
     checkpoint = torch.load(f'{args.neuroclips_model_dir}/{model_name_PR}', map_location='cpu')['model_state_dict']
     model.load_state_dict(checkpoint, strict=True)
     del checkpoint
@@ -222,14 +224,16 @@ if __name__ == '__main__':
     if local_rank == 0:
         with torch.no_grad(), torch.cuda.amp.autocast(dtype=data_type):
             for voxel, image in test_dl:
-                voxel = voxel.half().to(device)
+                voxel = voxel.to(device)
+                if device != torch.device('cpu'):
+                    voxel = voxel.half()
 
-                image = image.reshape(len(image) * args.fps * 2, 3, 224, 224).cpu()
+                image = image.reshape(len(image) * args.fps * 2, 3, 224, 224)
                 image = image.to(device)
 
                 voxel = model.fmri(voxel).unsqueeze(1)
                 voxel_ridge = model.ridge1(voxel, 0)
-                blurry_image_enc_ = model.backbone(voxel_ridge, time=40*args.fps*2)
+                blurry_image_enc_ = model.backbone(voxel_ridge, time=args.batch_size*args.fps*2)
 
                 if args.blurry_recon:
                     image_enc_pred, _ = blurry_image_enc_

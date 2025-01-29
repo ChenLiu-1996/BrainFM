@@ -445,7 +445,9 @@ if __name__ == '__main__':
             with torch.cuda.amp.autocast(dtype=data_type):
                 for iter_idx, (voxel, image, text) in enumerate(train_dl):
                     image = image[:, 2 + epoch % 2, :, :, :].float()
-                    voxel = voxel[:, epoch % 2, :].half().unsqueeze(1)
+                    voxel = voxel[:, epoch % 2, :].unsqueeze(1)
+                    if device != torch.device('cpu'):
+                        voxel = voxel.half()
 
                     image_iters[iter_idx, s * args.batch_size : s * args.batch_size + args.batch_size] = image
                     text_iters[iter_idx, s * args.batch_size : s * args.batch_size + args.batch_size] = text
@@ -593,9 +595,9 @@ if __name__ == '__main__':
         if local_rank == 0:
             with torch.no_grad(), torch.cuda.amp.autocast(dtype=data_type):
                 for test_i, (voxel, image, text) in enumerate(test_dl):
-                    # all test samples should be loaded per batch such that test_i should never exceed 0
 
-                    voxel = voxel.half()
+                    if device != torch.device('cpu'):
+                        voxel = voxel.half()
                     image = image[:,2,:,:,:].cpu()
 
                     loss = 0.0

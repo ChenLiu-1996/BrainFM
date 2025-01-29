@@ -212,7 +212,7 @@ if __name__ == '__main__':
     train_dataset = CC2017_Dataset(voxel_train, train_images, istrain=True)
     test_dataset = CC2017_Dataset(voxel_test, test_images, istrain=False)
     train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False, num_workers=0, drop_last=False)
-    test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=40, shuffle=False, num_workers=0, drop_last=False)
+    test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=0, drop_last=False)
 
     num_samples_per_epoch = len(train_dataset) // num_devices
     num_iterations_per_epoch = num_samples_per_epoch // args.batch_size
@@ -348,7 +348,9 @@ if __name__ == '__main__':
                 loss = 0.0
 
                 image = image.reshape(len(image) * args.fps * 2, 3, 224, 224).to(device)
-                voxel = voxel[:, epoch % 2, :].half().unsqueeze(1).to(device)
+                voxel = voxel[:, epoch % 2, :].unsqueeze(1).to(device)
+                if device != torch.device('cpu'):
+                    voxel = voxel.half()
 
                 if args.use_image_aug:
                     image = img_augment(image)
@@ -410,15 +412,16 @@ if __name__ == '__main__':
         if local_rank == 0:
             with torch.no_grad(), torch.cuda.amp.autocast(dtype=data_type):
                 for voxel, image in test_dl:
-                    voxel = voxel.half()
-                    image = image.reshape(len(image) * args.fps * 2, 3, 224, 224).cpu()
+                    if device != torch.device('cpu'):
+                        voxel = voxel.half()
+                    image = image.reshape(len(image) * args.fps * 2, 3, 224, 224)
 
                     voxel = voxel.to(device)
                     image = image.to(device)
 
                     voxel = model.fmri(voxel).unsqueeze(1)
                     voxel_ridge = model.ridge1(voxel, 0)
-                    blurry_image_enc_ = model.backbone(voxel_ridge, time=40*args.fps*2)
+                    blurry_image_enc_ = model.backbone(voxel_ridge, time=args.batch_size*args.fps*2)
 
                     # for some evals, only doing a subset of the samples per batch because of computational cost
                     #random_samps = np.random.choice(np.arange(len(image)), size=len(image)//6, replace=False)
