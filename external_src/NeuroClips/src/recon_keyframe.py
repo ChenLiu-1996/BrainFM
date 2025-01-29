@@ -43,7 +43,10 @@ def verify_necessary_files(args, verbose: bool = True):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Model Training Configuration')
     parser.add_argument(
-        '--subj', type=int, default=1, choices=[1,2,3],
+        "--batch_size", type=int, default=4,
+    )
+    parser.add_argument(
+        '--subj', type=int, default=1, choices=[1, 2, 3],
         help='Validate on which subject?',
     )
     parser.add_argument(
@@ -59,6 +62,9 @@ if __name__ == '__main__':
         '--seed', type=int, default=42,
     )
     parser.add_argument(
+        '--plotting', action=argparse.BooleanOptionalAction, default=False,
+    )
+    parser.add_argument(
         '--data_dir', type=str, default='$NeuroClips_ROOT/data/',
     )
     parser.add_argument(
@@ -69,9 +75,6 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--output_frame_dir', type=str, default='$NeuroClips_ROOT/outputs/frames/',
-    )
-    parser.add_argument(
-        '--plotting', action='store_true',
     )
 
     args = parser.parse_args()
@@ -119,14 +122,15 @@ if __name__ == '__main__':
     seq_len = 1
 
     voxel_test = torch.load(f'{args.data_dir}/subj0{args.subj}_test_fmri.pt', map_location='cpu')
-    voxel_test = torch.mean(voxel_test, dim = 1)
+    voxel_test = torch.mean(voxel_test, dim = 1).unsqueeze(1)
+    num_voxels_list = [voxel_test.shape[-1]]
     print('Loaded all test fMRI frames to cpu!', voxel_test.shape)
 
     test_images = torch.load(f'{args.data_dir}/GT_test_3fps.pt', map_location='cpu')
     print('Loaded all test image frames to cpu!', test_images.shape)
 
     test_dataset = CC2017_Dataset(voxel_test, test_images, istrain = False)
-    test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=4, shuffle=False, num_workers=0, drop_last=False)
+    test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=0, drop_last=False)
 
     if args.blurry_recon:
         from diffusers import AutoencoderKL
@@ -146,16 +150,17 @@ if __name__ == '__main__':
         utils.count_params(autoenc)
 
     model = Neuroclips()
-    model.ridge = RidgeRegression([voxel_test.shape[-1]], out_features=args.hidden_dim, seq_len=seq_len)
+    model.ridge = RidgeRegression(num_voxels_list, out_features=args.hidden_dim, seq_len=seq_len)
     model.clipproj = CLIPProj()
 
-    model.backbone = Semantic_Reconstruction(h=args.hidden_dim,
-                                             in_dim=args.hidden_dim,
-                                             seq_len=seq_len,
-                                             n_blocks=args.n_blocks,
-                                             clip_size=clip_emb_dim,
-                                             out_dim=clip_emb_dim*clip_seq_dim,
-                                             blurry_recon=False)
+    model.backbone = Semantic_Reconstruction(
+        h=args.hidden_dim,
+        in_dim=args.hidden_dim,
+        seq_len=seq_len,
+        n_blocks=args.n_blocks,
+        clip_size=clip_emb_dim,
+        out_dim=clip_emb_dim*clip_seq_dim,
+        blurry_recon=False)
 
     utils.count_params(model.backbone)
     utils.count_params(model)
@@ -260,8 +265,7 @@ if __name__ == '__main__':
     with torch.no_grad(), torch.cuda.amp.autocast(dtype=torch.float16):
         for batch_idx, (voxel, image) in enumerate(tqdm(test_dl)):
 
-            voxel = voxel.unsqueeze(1).to(device)
-            voxel = voxel.half()
+            voxel = voxel.half().to(device)
 
             voxel_ridge = model.ridge(voxel, 0) # 0th index of subj_list
             _, clip_voxels, blurry_image_enc = model.backbone(voxel_ridge)

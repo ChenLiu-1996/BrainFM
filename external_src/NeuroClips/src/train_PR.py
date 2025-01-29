@@ -58,7 +58,7 @@ def save_ckpt(ckpt_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Model Training Configuration')
     parser.add_argument(
-        '--subj', type=int, default=1, choices=[1,2,3],
+        '--subj', type=int, default=1, choices=[1, 2, 3],
         help='Validate on which subject?',
     )
     parser.add_argument(
@@ -70,7 +70,7 @@ if __name__ == '__main__':
         help='Batch size can be increased by 10x if only training retreival submodule and not diffusion prior',
     )
     parser.add_argument(
-        '--mixup_pct', type=float, default=.33,
+        '--mixup_pct', type=float, default=0.33,
         help='proportion of way through training when to switch from BiMixCo to SoftCLIP',
     )
     parser.add_argument(
@@ -78,11 +78,11 @@ if __name__ == '__main__':
         help='whether to output blurry reconstructions',
     )
     parser.add_argument(
-        '--blur_scale', type=float, default=.5,
+        '--blur_scale', type=float, default=0.5,
         help='multiply loss from blurry recons by this number',
     )
     parser.add_argument(
-        '--clip_scale', type=float, default=1.,
+        '--clip_scale', type=float, default=1.0,
         help='multiply contrastive loss by this number',
     )
     parser.add_argument(
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     # seed all random functions
     utils.seed_everything(args.seed)
 
-    model_name = f'video_subj0{args.subj}_low_level.pth'
+    model_name_PR = f'video_subj0{args.subj}_PR.pth'
 
     if args.use_image_aug or args.blurry_recon:
         import kornia
@@ -229,8 +229,8 @@ if __name__ == '__main__':
             layers_per_block=2,
             sample_size=256,
         )
-        ckpt = torch.load(f'{args.model_dir}/sd_image_var_autoenc.pth')
-        autoenc.load_state_dict(ckpt)
+        checkpoint = torch.load(f'{args.model_dir}/sd_image_var_autoenc.pth')
+        autoenc.load_state_dict(checkpoint)
 
         autoenc.eval()
         autoenc.requires_grad_(False)
@@ -259,19 +259,22 @@ if __name__ == '__main__':
     utils.count_params(model.ridge1)
     utils.count_params(model)
 
-    model.backbone = Perception_Reconstruction(h=args.hidden_dim,
-                                               in_dim=args.hidden_dim,
-                                               seq_len=seq_len,
-                                               n_blocks=args.n_blocks,
-                                               clip_size=clip_emb_dim,
-                                               out_dim=clip_emb_dim*clip_seq_dim,
-                                               blurry_recon=args.blurry_recon,
-                                               clip_scale=args.clip_scale)
-    model.fmri = Inception_Extension(h=256,
-                                     in_dim=voxel_length,
-                                     out_dim=voxel_length,
-                                     expand=args.fps*2,
-                                     seq_len=seq_len)
+    model.backbone = Perception_Reconstruction(
+        h=args.hidden_dim,
+        in_dim=args.hidden_dim,
+        seq_len=seq_len,
+        n_blocks=args.n_blocks,
+        clip_size=clip_emb_dim,
+        out_dim=clip_emb_dim*clip_seq_dim,
+        blurry_recon=args.blurry_recon,
+        clip_scale=args.clip_scale)
+
+    model.fmri = Inception_Extension(
+        h=256,
+        in_dim=voxel_length,
+        out_dim=voxel_length,
+        expand=args.fps*2,
+        seq_len=seq_len)
 
     utils.count_params(model.backbone)
     utils.count_params(model.fmri)
@@ -311,9 +314,8 @@ if __name__ == '__main__':
     model, optimizer, train_dl, lr_scheduler = accelerator.prepare(model, optimizer, train_dl, lr_scheduler)
     # leaving out test_dl since we will only have local_rank 0 device do evals
 
-    print(f'{model_name} starting with epoch {epoch} / {args.num_epochs}')
+    print(f'{model_name_PR} starting with epoch {epoch} / {args.num_epochs}')
     progress_bar = tqdm(range(epoch, args.num_epochs), ncols=1200, disable=(local_rank!=0))
-    test_image, test_voxel = None, None
     mse = nn.MSELoss()
     l1 = nn.L1Loss()
     soft_loss_temps = utils.cosine_anneal(0.004, 0.0075, args.num_epochs - int(args.mixup_pct * args.num_epochs))
@@ -324,28 +326,27 @@ if __name__ == '__main__':
     for epoch in progress_bar:
         model.train()
 
-        fwd_percent_correct = 0.
-        bwd_percent_correct = 0.
+        fwd_percent_correct = 0.0
+        bwd_percent_correct = 0.0
 
-        loss_clip_total = 0.
-        loss_blurry_total = 0.
-        loss_blurry_cont_total = 0.
-        test_loss_clip_total = 0.
+        loss_clip_total = 0.0
+        loss_blurry_total = 0.0
+        loss_blurry_cont_total = 0.0
+        test_loss_clip_total = 0.0
 
-        loss_prior_total = 0.
-        test_loss_prior_total = 0.
+        loss_prior_total = 0.0
+        test_loss_prior_total = 0.0
 
-        blurry_pixcorr = 0.
-        test_blurry_pixcorr = 0.
+        blurry_pixcorr = 0.0
+        test_blurry_pixcorr = 0.0
 
         # you now have voxel_iters and image_iters with num_iterations_per_epoch batches each
         step = 0
         for train_i, (voxel, image) in enumerate(train_dl):
             with torch.cuda.amp.autocast(dtype=data_type):
                 optimizer.zero_grad()
-                loss=0.
+                loss = 0.0
 
-                #text = text_iters[train_i].detach()
                 image = image.reshape(len(image) * args.fps * 2, 3, 224, 224).to(device)
                 voxel = voxel[:, epoch % 2, :].half().unsqueeze(1).to(device)
 
@@ -406,28 +407,17 @@ if __name__ == '__main__':
 
         model.eval()
 
-        if local_rank==0:
+        if local_rank == 0:
             with torch.no_grad(), torch.cuda.amp.autocast(dtype=data_type):
-                for test_i, (voxel, image) in enumerate(test_dl):
-                    # all test samples should be loaded per batch such that test_i should never exceed 0
-
-                    if test_image is None:
-                        voxel = voxel.half()
-                        image = image.reshape(len(image) * args.fps * 2, 3, 224, 224).cpu()
-
-                    loss=0.
+                for voxel, image in test_dl:
+                    voxel = voxel.half()
+                    image = image.reshape(len(image) * args.fps * 2, 3, 224, 224).cpu()
 
                     voxel = voxel.to(device)
                     image = image.to(device)
 
-                    #clip_target = clip_img_embedder(image.float())
-
-                    test_fwd_percent_correct = 0.
-                    test_bwd_percent_correct = 0.
-                    text_fwd_percent_correct = 0.
-
                     voxel = model.fmri(voxel).unsqueeze(1)
-                    voxel_ridge = model.ridge1(voxel,0)
+                    voxel_ridge = model.ridge1(voxel, 0)
                     blurry_image_enc_ = model.backbone(voxel_ridge, time=40*args.fps*2)
 
                     # for some evals, only doing a subset of the samples per batch because of computational cost
@@ -435,7 +425,8 @@ if __name__ == '__main__':
 
                     if args.blurry_recon:
                         image_enc_pred, _ = blurry_image_enc_
-                        blurry_recon_images = (autoenc.decode(image_enc_pred/0.18215).sample / 2 + 0.5).clamp(0,1)
+                        blurry_recon_images = (autoenc.decode(image_enc_pred/0.18215).sample / 2 + 0.5).clamp(0, 1)
+
                         pixcorr = utils.pixcorr(image, blurry_recon_images)
                         test_blurry_pixcorr += pixcorr.item()
 
@@ -448,7 +439,7 @@ if __name__ == '__main__':
         if test_blurry_pixcorr / len(test_dl) > best_test:
             best_test = test_blurry_pixcorr / len(test_dl)
             print('new best test correlation:', best_test)
-            save_ckpt(f'{args.neuroclips_model_dir}/{model_name}')
+            save_ckpt(f'{args.neuroclips_model_dir}/{model_name_PR}')
         else:
             print('not best', test_blurry_pixcorr / len(test_dl), 'best test correlation is', best_test)
 

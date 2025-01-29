@@ -80,7 +80,7 @@ def load_ckpt(ckpt_path, load_lr=True, load_optimizer=True, load_epoch=True, str
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Model Training Configuration')
     parser.add_argument(
-        '--subj', type=int, default=1, choices=[1,2,3],
+        '--subj', type=int, default=1, choices=[1, 2, 3],
         help='Validate on which subject?',
     )
     parser.add_argument(
@@ -190,10 +190,10 @@ if __name__ == '__main__':
     utils.seed_everything(args.seed)
 
     if args.use_prior:
-        model_name_prior = f'video_subj0{args.subj}_SR_backbone.pth'
-        model_name = f'video_subj0{args.subj}_SR.pth'
+        model_name_SR_prior = f'video_subj0{args.subj}_SR_prior.pth'
+        model_name_SR = f'video_subj0{args.subj}_SR.pth'
     else:
-        model_name = f'video_subj0{args.subj}_SR_backbone.pth'
+        model_name_SR = f'video_subj0{args.subj}_SR_prior.pth'
 
     if args.use_image_aug or args.blurry_recon:
         import kornia
@@ -292,14 +292,15 @@ if __name__ == '__main__':
 
     model = Neuroclips()
 
-    model.backbone = Semantic_Reconstruction(h=args.hidden_dim,
-                                             in_dim=args.hidden_dim,
-                                             seq_len=seq_len,
-                                             n_blocks=args.n_blocks,
-                                             clip_size=clip_emb_dim,
-                                             out_dim=clip_emb_dim*clip_seq_dim,
-                                             blurry_recon=args.blurry_recon,
-                                             clip_scale=args.clip_scale)
+    model.backbone = Semantic_Reconstruction(
+        h=args.hidden_dim,
+        in_dim=args.hidden_dim,
+        seq_len=seq_len,
+        n_blocks=args.n_blocks,
+        clip_size=clip_emb_dim,
+        out_dim=clip_emb_dim*clip_seq_dim,
+        blurry_recon=args.blurry_recon,
+        clip_scale=args.clip_scale)
     utils.count_params(model.backbone)
     utils.count_params(model)
 
@@ -355,7 +356,7 @@ if __name__ == '__main__':
         utils.count_params(model.ridge)
         utils.count_params(model)
 
-        checkpoint = torch.load(f'{args.neuroclips_model_dir}/{model_name_prior}', map_location='cpu')
+        checkpoint = torch.load(f'{args.neuroclips_model_dir}/{model_name_SR_prior}', map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
         del checkpoint
 
@@ -407,9 +408,8 @@ if __name__ == '__main__':
     model, optimizer, *train_dls, lr_scheduler = accelerator.prepare(model, optimizer, *train_dls, lr_scheduler)
     # leaving out test_dl since we will only have local_rank 0 device do evals
 
-    print(f'{model_name} starting with epoch {epoch} / {args.num_epochs}')
+    print(f'{model_name_SR} starting with epoch {epoch} / {args.num_epochs}')
     progress_bar = tqdm(range(epoch, args.num_epochs), ncols=1200, disable=(local_rank!=0))
-    test_image, test_voxel = None, None
     mse = nn.MSELoss()
     l1 = nn.L1Loss()
     soft_loss_temps = utils.cosine_anneal(0.004, 0.0075, args.num_epochs - int(args.mixup_pct * args.num_epochs))
@@ -590,17 +590,15 @@ if __name__ == '__main__':
 
         model.eval()
 
-        if local_rank==0:
+        if local_rank == 0:
             with torch.no_grad(), torch.cuda.amp.autocast(dtype=data_type):
                 for test_i, (voxel, image, text) in enumerate(test_dl):
                     # all test samples should be loaded per batch such that test_i should never exceed 0
 
-                    ## Average same-image repeats ##
-                    if test_image is None:
-                        voxel = voxel.half()
-                        image = image[:,2,:,:,:].cpu()
+                    voxel = voxel.half()
+                    image = image[:,2,:,:,:].cpu()
 
-                    loss = 0.
+                    loss = 0.0
 
                     voxel = voxel.to(device)
                     image = image.to(device)
@@ -688,7 +686,7 @@ if __name__ == '__main__':
             best_test_loss = loss_all/4
             print('new best test loss:',best_test_loss)
             if not args.use_prior:
-                save_ckpt(f'{args.neuroclips_model_dir}/{model_name}')
+                save_ckpt(f'{args.neuroclips_model_dir}/{model_name_SR}')
         else:
             print('not best:', loss_all/4, 'best test loss is', best_test_loss)
 
@@ -699,4 +697,4 @@ if __name__ == '__main__':
 
     print('\n===Finished!===\n')
     if args.ckpt_saving and args.use_prior:
-        save_ckpt(f'{args.neuroclips_model_dir}/{model_name}')
+        save_ckpt(f'{args.neuroclips_model_dir}/{model_name_SR}')
