@@ -23,9 +23,7 @@ def verify_necessary_files(args, verbose: bool = True):
         print('\nVerifying if we have all necessary data and model files...')
     assert os.path.isfile(f'{args.data_dir}/subj0{args.subj}_test_fmri.pt')
     assert os.path.isfile(f'{args.data_dir}/GT_test_3fps.pt')
-    assert os.path.isfile(f'{args.model_dir}/sd_image_var_autoenc.pth')
-    assert os.path.isfile(f'{args.model_dir}/mindeyev2_bigG_to_L_epoch8.pth')
-    assert os.path.isfile(f'{args.model_dir}/mindeyev2_unclip6_epoch0_step110000.ckpt')
+    assert os.path.isfile(f'{args.model_dir}/mindeyev2_sd_image_var_autoenc.pth')
     if verbose is True:
         print('Verified: all necessary files are available!\n')
     return
@@ -174,7 +172,7 @@ if __name__ == '__main__':
             layers_per_block=2,
             sample_size=256,
         )
-        checkpoint = torch.load(f'{args.model_dir}/sd_image_var_autoenc.pth')
+        checkpoint = torch.load(f'{args.model_dir}/mindeyev2_sd_image_var_autoenc.pth')
         autoenc.load_state_dict(checkpoint)
 
         autoenc.eval()

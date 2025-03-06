@@ -33,8 +33,8 @@ def verify_necessary_files(args, verbose: bool = True):
     assert os.path.isfile(f'{args.data_dir}/subj0{args.subj}_test_fmri.pt')
     assert os.path.isfile(f'{args.data_dir}/GT_train_3fps.pt')
     assert os.path.isfile(f'{args.data_dir}/GT_test_3fps.pt')
-    assert os.path.isfile(f'{args.model_dir}/sd_image_var_autoenc.pth')
-    assert os.path.isfile(f'{args.model_dir}/convnext_xlarge_alpha0.75_fullckpt.pth')
+    assert os.path.isfile(f'{args.model_dir}/mindeyev2_sd_image_var_autoenc.pth')
+    assert os.path.isfile(f'{args.model_dir}/mindeyev2_convnext_xlarge_alpha0.75_fullckpt.pth')
     if verbose is True:
         print('Verified: all necessary files are available!\n')
     return
@@ -229,7 +229,7 @@ if __name__ == '__main__':
             layers_per_block=2,
             sample_size=256,
         )
-        checkpoint = torch.load(f'{args.model_dir}/sd_image_var_autoenc.pth')
+        checkpoint = torch.load(f'{args.model_dir}/mindeyev2_sd_image_var_autoenc.pth')
         autoenc.load_state_dict(checkpoint)
 
         autoenc.eval()
@@ -237,7 +237,7 @@ if __name__ == '__main__':
         autoenc.to(device)
         utils.count_params(autoenc)
 
-        cnx = ConvnextXL(f'{args.model_dir}/convnext_xlarge_alpha0.75_fullckpt.pth')
+        cnx = ConvnextXL(f'{args.model_dir}/mindeyev2_convnext_xlarge_alpha0.75_fullckpt.pth')
         cnx.requires_grad_(False)
         cnx.eval()
         cnx.to(device)

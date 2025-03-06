@@ -37,8 +37,8 @@ def verify_necessary_files(args, verbose: bool = True):
     assert os.path.isfile(f'{args.data_dir}/GT_train_caption_emb.pt')
     assert os.path.isfile(f'{args.data_dir}/GT_test_caption_emb.pt')
     assert os.path.isfile(f'{args.data_dir}/coco_tokens_avg_proj.pth')
-    assert os.path.isfile(f'{args.model_dir}/sd_image_var_autoenc.pth')
-    assert os.path.isfile(f'{args.model_dir}/convnext_xlarge_alpha0.75_fullckpt.pth')
+    assert os.path.isfile(f'{args.model_dir}/mindeyev2_sd_image_var_autoenc.pth')
+    assert os.path.isfile(f'{args.model_dir}/mindeyev2_convnext_xlarge_alpha0.75_fullckpt.pth')
     assert os.path.isfile(f'{args.model_dir}/mindeyev2_final_subj01_pretrained_40sess_24bs_last.pth')
     if verbose is True:
         print('Verified: all necessary files are available!\n')
@@ -266,7 +266,7 @@ if __name__ == '__main__':
             layers_per_block=2,
             sample_size=256,
         )
-        ckpt = torch.load(f'{args.model_dir}/sd_image_var_autoenc.pth')
+        ckpt = torch.load(f'{args.model_dir}/mindeyev2_sd_image_var_autoenc.pth')
         autoenc.load_state_dict(ckpt)
 
         autoenc.eval()
@@ -274,7 +274,7 @@ if __name__ == '__main__':
         autoenc.to(device)
         utils.count_params(autoenc)
 
-        cnx = ConvnextXL(f'{args.model_dir}/convnext_xlarge_alpha0.75_fullckpt.pth')
+        cnx = ConvnextXL(f'{args.model_dir}/mindeyev2_convnext_xlarge_alpha0.75_fullckpt.pth')
         cnx.requires_grad_(False)
         cnx.eval()
         cnx.to(device)
