@@ -23,18 +23,18 @@ def extract_frames(video_prefix, num_videos):
         impath = os.path.join(OUTPUT_FRAME_FOLDER, video_name)
         os.makedirs(impath, exist_ok=True)
 
-        # Construct the ffmpeg command
+        # Construct the ffmpeg command.
         cmd = [
             'ffmpeg', '-i', os.path.join(INPUT_VIDEO_FOLDER, f'{video_name}.mp4'),
             '-vf', f'fps={FPS},scale={IMG_SIZE}:{IMG_SIZE}',
             os.path.join(impath, 'im-%d.png')
         ]
 
-        # Execute the command
+        # Execute the command.
         subprocess.run(cmd, check=True)
 
 
 if __name__ == '__main__':
-    # Process training and testing videos
+    # Process training and testing videos.
     extract_frames('seg', 18)
     extract_frames('test', 5)
