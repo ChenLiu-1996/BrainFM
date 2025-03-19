@@ -5,6 +5,7 @@ The dataset contains acquisitions of fMRI.
 from typing import Tuple
 
 import os
+import cv2
 import numpy as np
 from glob import glob
 import nibabel as nib
@@ -31,6 +32,7 @@ class DynamicNaturalVisionDataset(Dataset):
                  fMRI_frames_per_session: int = 240,
                  video_frames_per_session: int = 1440,
                  voxel_spacing: int = 3,
+                 target_image_dim: Tuple[int] = (256, 256),
                  base_path: str = '../../data/Dynamic_Natural_Vision/',
                  brain_atlas_path: str = '../../data/brain_parcellation/AAL3/AAL3v1_1mm.nii.gz',
                  mode: str = 'train'):
@@ -40,14 +42,17 @@ class DynamicNaturalVisionDataset(Dataset):
         fMRI_frames_per_session: [intrinsic to this dataset] Number of fMRI frames per session.
         video_frames_per_session: [intrinsic to this dataset] Number of video frames per session.
         voxel_spacing: [intrinsic to this dataset] Voxel spacing in mm.
+        target_image_dim: Desired image dimension (height, width) of video frame.
         '''
 
         self.subject_idx = subject_idx
         self.fMRI_window_frames = fMRI_window_frames
         self.fMRI_frames_per_session = fMRI_frames_per_session
-        self.fMRI_fps_windowed = self.fMRI_frames_per_session - self.fMRI_window_frames + 1
+        self.fMRI_frames_per_session_indexable = self.fMRI_frames_per_session - self.fMRI_window_frames + 1
         self.video_frames_per_session = video_frames_per_session
+        assert self.video_frames_per_session % self.fMRI_frames_per_session == 0
         self.voxel_spacing = voxel_spacing
+        self.target_image_dim = target_image_dim
         self.brain_atlas_path = brain_atlas_path
         assert mode in ['train', 'test'], f'`DynamicNaturalVisionDataset` mode must be `train` or `test`, but got {mode}.'
         self.mode = mode
@@ -63,10 +68,10 @@ class DynamicNaturalVisionDataset(Dataset):
             self.fMRI_folders = np.array(natsorted(glob(
                 os.path.join(base_path, f'subject{self.subject_idx}', 'fmri', f'{string_for_mode[self.mode]}*', 'mni'))))
 
-        self.video_frame_folder = os.path.join(base_path, 'video_frames', f'{string_for_mode[self.mode]}*')
+        self.video_frame_folder = os.path.join(base_path, 'video_frames')
 
     def __len__(self) -> int:
-        return len(self.fMRI_folders) * self.fMRI_fps_windowed
+        return len(self.fMRI_folders) * self.fMRI_frames_per_session_indexable
 
     def __getitem__(self, idx) -> Tuple[np.array, np.array]:
         '''
@@ -76,13 +81,13 @@ class DynamicNaturalVisionDataset(Dataset):
         take the average across all repetitions per subject per session.
         '''
         # Load the fMRI scan.
-        fMRI_scan_idx = idx // self.fMRI_fps_windowed
-        fMRI_frame_idx_start = idx % self.fMRI_fps_windowed
+        fMRI_scan_idx = idx // self.fMRI_frames_per_session_indexable
+        fMRI_frame_idx_start = idx % self.fMRI_frames_per_session_indexable
 
         fMRI_folder = self.fMRI_folders[fMRI_scan_idx]
-        fMRI_path_list = sorted(glob(os.path.join(fMRI_folder, '*nii*')))
+        fMRI_path_list = natsorted(glob(os.path.join(fMRI_folder, '*nii*')))
 
-        repetitions = []
+        repetitions = None
         for fMRI_path in fMRI_path_list:
             fMRI_nii = nib.load(fMRI_path)
             voxel_spacing = fMRI_nii.header['pixdim']
@@ -112,22 +117,40 @@ class DynamicNaturalVisionDataset(Dataset):
             fMRI = (fMRI - mean_along_time) / std_along_time
 
             # Take the queried fMRI frames.
-            fMRI_frames = fMRI[..., fMRI_frame_idx_start][..., None]
-            for i in range(fMRI_frame_idx_start + 1, fMRI_frame_idx_start + self.fMRI_window_frames):
-                fMRI_frames = np.concatenate((fMRI_frames, fMRI[..., i][..., None]), axis=-1)
+            fMRI_frames = fMRI[..., fMRI_frame_idx_start : fMRI_frame_idx_start + self.fMRI_window_frames]
+            if self.fMRI_window_frames == 1:
+                assert len(fMRI_frames.shape) == 3
+                fMRI_frames = fMRI_frames[..., None]
 
-            repetitions.append(fMRI_frames)
+            if repetitions is None:
+                repetitions = fMRI_frames[..., None]
+            else:
+                repetitions = np.concatenate((repetitions, fMRI_frames[..., None]), axis=-1)
             del fMRI_frames
 
-        repetitions = np.array(repetitions)
-        assert repetitions.shape[0] == len(fMRI_path_list)
-        fMRI_frames = repetitions.mean(axis=0)
+        assert repetitions.shape[-1] == len(fMRI_path_list)
+        fMRI_frames = repetitions.mean(axis=-1)
 
         # Take the queried video frames.
         video_id = self.fMRI_folders[fMRI_scan_idx].split('fmri/')[1].split('/mni')[0]
-        video_frames = glob(os.path.join(self.video_frame_folder, '*.png'))
+        video_frame_paths = natsorted(glob(os.path.join(self.video_frame_folder, video_id, '*.png')))
+        video_frame_per_fMRI_frame = int(self.video_frames_per_session / self.fMRI_frames_per_session)
+        video_frame_idx_start = video_frame_per_fMRI_frame * fMRI_frame_idx_start
+        video_frame_paths_selected = video_frame_paths[
+            video_frame_idx_start : video_frame_idx_start + video_frame_per_fMRI_frame * self.fMRI_window_frames]
 
-        import pdb; pdb.set_trace()
+        video_frames = None
+        for video_frame_path in video_frame_paths_selected:
+            image = np.array(
+                cv2.resize(
+                    cv2.cvtColor(cv2.imread(video_frame_path, cv2.IMREAD_COLOR), code=cv2.COLOR_BGR2RGB),
+                    self.target_image_dim))
+            image = normalize_natural_image(image)
+            if video_frames is None:
+                video_frames = image[..., None]
+            else:
+                video_frames = np.concatenate((video_frames, image[..., None]), axis=-1)
+            del image
 
         # Load and resample the brain atlas.
         atlas_nii = nib.load(self.brain_atlas_path)
@@ -136,9 +159,15 @@ class DynamicNaturalVisionDataset(Dataset):
 
         assert fMRI.shape[:3] == atlas.shape, f'fMRI ({fMRI.shape[:3]}) and brain atlas {atlas.shape} dimension mismatch.'
 
+        return fMRI_frames, video_frames, atlas
 
-        # return image, label
 
+def normalize_natural_image(image):
+    image = image / 255
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    image = (image - mean) / std
+    return image
 
 def detrend_poly(signal, polyorder=1, axis=-1):
     '''
@@ -178,6 +207,7 @@ def detrend_poly(signal, polyorder=1, axis=-1):
 
     detrended = reshaped.reshape(orig_shape)
     return np.moveaxis(detrended, -1, axis)
+
 
 if __name__ == '__main__':
     dataset = DynamicNaturalVisionDataset()

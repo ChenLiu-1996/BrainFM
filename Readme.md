@@ -17,6 +17,7 @@ conda activate brainfm
 conda install scikit-learn scikit-image pillow matplotlib seaborn tqdm -c pytorch -c anaconda -c conda-forge -y
 conda install accelerate -c conda-forge -y
 conda install nibabel -y
+python -m pip install opencv-python
 
 # For NeuroClips
 python -m pip install webdataset pytorch-lightning einops kornia open-clip-torch omegaconf transformers
