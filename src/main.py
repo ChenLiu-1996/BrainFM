@@ -88,14 +88,11 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter):
         video_true = data_item[1].to(device)
         video_pred = model(fMRI_graph)
 
-        print('video_true', video_true.shape)
-        print('video_pred', video_pred.shape)
-
         train_cossim_clip += cossim_video(encoder_clip, video_true, video_pred)
         train_cossim_resnet += cossim_video(encoder_resnet, video_true, video_pred)
         train_cossim_convnext += cossim_video(encoder_convnext, video_true, video_pred)
 
-        loss = loss_fn(video_pred, video_true)
+        loss = loss_fn(video_pred.float(), video_true.float())
 
         loss_ = loss / batch_per_backprop
         loss_.backward()
@@ -133,7 +130,7 @@ def val_epoch(model, val_loader, loss_fn, device, max_iter):
         val_cossim_resnet += cossim_video(encoder_resnet, video_true, video_pred)
         val_cossim_convnext += cossim_video(encoder_convnext, video_true, video_pred)
 
-        loss = loss_fn(video_pred, video_true)
+        loss = loss_fn(video_pred.float(), video_true.float())
         val_loss += loss.mean().item()
 
     val_loss /= min(max_iter, len(val_loader))
@@ -160,7 +157,7 @@ def test_model(model, test_loader, loss_fn, device):
         test_cossim_resnet += cossim_video(encoder_resnet, video_true, video_pred)
         test_cossim_convnext += cossim_video(encoder_convnext, video_true, video_pred)
 
-        loss = loss_fn(video_pred, video_true)
+        loss = loss_fn(video_pred.float(), video_true.float())
         test_loss += loss.mean().item()
 
     test_loss /= len(test_loader)
