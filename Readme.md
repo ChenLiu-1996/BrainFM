@@ -19,6 +19,7 @@ conda install accelerate -c conda-forge -y
 conda install nibabel -y
 python -m pip install opencv-python
 python -m pip install torch_geometric einops
+python -m pip install git+https://github.com/openai/CLIP.git
 
 
 # For NeuroClips

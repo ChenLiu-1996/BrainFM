@@ -37,8 +37,8 @@ class DynamicNaturalVisionDataset(Dataset):
                  video_frames_per_session: int = 1440,
                  voxel_spacing: int = 3,
                  target_image_dim: Tuple[int] = (256, 256),
-                 base_path: str = '../../data/Dynamic_Natural_Vision/',
-                 brain_atlas_path: str = '../../data/brain_parcellation/AAL3/',
+                 base_folder: str = '../../data/Dynamic_Natural_Vision/',
+                 brain_atlas_folder: str = '../../data/brain_parcellation/AAL3/',
                  graph_knn_k: int = 5,
                  mode: str = 'train',
                  transform = None):
@@ -59,7 +59,7 @@ class DynamicNaturalVisionDataset(Dataset):
         assert self.video_frames_per_session % self.fMRI_frames_per_session == 0
         self.voxel_spacing = voxel_spacing
         self.target_image_dim = target_image_dim
-        self.brain_atlas_path = brain_atlas_path
+        self.brain_atlas_folder = brain_atlas_folder
         assert mode in ['train', 'test'], f'`DynamicNaturalVisionDataset` mode must be `train` or `test`, but got {mode}.'
         self.mode = mode
         string_for_mode = {
@@ -71,28 +71,28 @@ class DynamicNaturalVisionDataset(Dataset):
 
         if self.subject_idx is None:
             self.fMRI_folders = np.array(natsorted(glob(
-                os.path.join(base_path, 'subject*', 'fmri', f'{string_for_mode[self.mode]}*', 'mni'))))
+                os.path.join(base_folder, 'subject*', 'fmri', f'{string_for_mode[self.mode]}*', 'mni'))))
         else:
             self.fMRI_folders = np.array(natsorted(glob(
-                os.path.join(base_path, f'subject{self.subject_idx}', 'fmri', f'{string_for_mode[self.mode]}*', 'mni'))))
+                os.path.join(base_folder, f'subject{self.subject_idx}', 'fmri', f'{string_for_mode[self.mode]}*', 'mni'))))
 
-        self.video_frame_folder = os.path.join(base_path, 'video_frames')
+        self.video_frame_folder = os.path.join(base_folder, 'video_frames')
         self.atlas, self.atlas_id_map = self._load_atlas()
-        self.edge_index_spatial, self.edge_attr_spatial = self._compute_voxel_graph()
+        self.edge_index_spatial, self.edge_attr_spatial, self.num_voxels = self._compute_voxel_graph()
 
     def __len__(self) -> int:
         return len(self.fMRI_folders) * self.fMRI_frames_per_session_indexable
 
     def _load_atlas(self) -> np.ndarray:
         # Load and resample the brain atlas.
-        atlas_nii = nib.load(os.path.join(self.brain_atlas_path, 'AAL3v1_1mm.nii.gz'))
+        atlas_nii = nib.load(os.path.join(self.brain_atlas_folder, 'AAL3v1_1mm.nii.gz'))
         atlas_nii = processing.resample_to_output(atlas_nii,
                                                   voxel_sizes=(self.voxel_spacing,
                                                                self.voxel_spacing,
                                                                self.voxel_spacing))
         atlas = atlas_nii.get_fdata()
 
-        atlas_info_csv = pd.read_csv(os.path.join(self.brain_atlas_path, 'ROI_label.csv'))
+        atlas_info_csv = pd.read_csv(os.path.join(self.brain_atlas_folder, 'ROI_label.csv'))
         atlas_id_map = {}
         for row_idx in range(len(atlas_info_csv)):
             row_item = atlas_info_csv.loc[row_idx]
@@ -111,6 +111,7 @@ class DynamicNaturalVisionDataset(Dataset):
         '''
 
         valid_coords = np.argwhere(self.atlas > 0)  # [V, 3]
+        num_voxels = valid_coords.shape[0]
 
         # Compute k-NN graph (excluding self-edges).
         adjacency_sparse = kneighbors_graph(valid_coords,
@@ -133,7 +134,7 @@ class DynamicNaturalVisionDataset(Dataset):
         edge_index = torch.tensor(edge_index, dtype=torch.long).t()  # [2, E]
         edge_attr = torch.tensor(edge_features, dtype=torch.float)   # [E, 2]
 
-        return edge_index, edge_attr
+        return edge_index, edge_attr, num_voxels
 
     def _load_fMRI_scans(self, fMRI_path_list: str, fMRI_frame_idx_start: int) -> np.ndarray:
         '''
@@ -194,7 +195,10 @@ class DynamicNaturalVisionDataset(Dataset):
             fMRI_frame_idx_start: Starting fMRI frame index.
 
         Returns:
-            repetitions: [H, W, 3, T] numpy array. Note that H, W, T may be different from fMRI.
+            repetitions:
+                [R, H, W, 3, T] numpy array.
+                R stands for the number of repetitions.
+                Note that H, W, T may be different from fMRI.
         '''
         video_frame_paths = natsorted(glob(os.path.join(self.video_frame_folder, video_id, '*.png')))
         video_frame_per_fMRI_frame = int(self.video_frames_per_session / self.fMRI_frames_per_session)
