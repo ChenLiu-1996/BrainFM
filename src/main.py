@@ -176,7 +176,7 @@ if __name__ == "__main__":
     args.add_argument('--max-epochs', default=50, type=int)
     args.add_argument('--max-training-iters', default=512, type=int)
     args.add_argument('--max-validation-iters', default=256, type=int)
-    args.add_argument('--batch-size', default=4, type=int)
+    args.add_argument('--batch-size', default=2, type=int)
     args.add_argument('--desired-batch-size', default=16, type=int)
     args.add_argument('--fMRI-window-frames', default=3, type=int)
     args.add_argument('--graph-knn-k', default=3, type=int)
@@ -229,7 +229,8 @@ if __name__ == "__main__":
     config_str += '\nTraining History:'
     log(config_str, filepath=log_file, to_console=True)
 
-    log(f'[SpatialTemporalGraphTransformer] Training begins.', filepath=log_file)
+    log('[SpatialTemporalGraphTransformer] Training begins.', filepath=log_file)
+    log(f'Using device: {device}', filepath=log_file)
     best_val_loss = np.inf
     for epoch_idx in tqdm(range(args.max_epochs)):
         model.train()
