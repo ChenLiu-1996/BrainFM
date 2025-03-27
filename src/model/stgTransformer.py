@@ -6,18 +6,19 @@ from einops import rearrange
 
 
 class SpatialGraphEncoder(nn.Module):
-    def __init__(self, in_channels, hidden_dim, num_layers=2):
+    def __init__(self, in_channels, hidden_dim, edge_dim, num_layers=2):
         super().__init__()
         self.layers = nn.ModuleList()
-        self.layers.append(GATv2Conv(in_channels, hidden_dim))
+        self.layers.append(GATv2Conv(in_channels, hidden_dim, edge_dim=edge_dim))
         for _ in range(num_layers - 1):
-            self.layers.append(GATv2Conv(hidden_dim, hidden_dim))
+            self.layers.append(GATv2Conv(hidden_dim, hidden_dim, edge_dim=edge_dim))
 
     def forward(self, data):
         x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
-        for layer in self.layers:
+        for layer_idx, layer in enumerate(self.layers):
             x = layer(x=x, edge_index=edge_index, edge_attr=edge_attr)
-            x = torch.relu(x)
+            if layer_idx < len(self.layers) - 1:
+                x = torch.nn.functional.silu(x)
         return x
 
 class VideoDecoder(nn.Module):
@@ -32,7 +33,7 @@ class VideoDecoder(nn.Module):
 
     def forward(self, x):
         '''
-        x: [B, 6N, d]
+        x: [B, T, d]
         '''
         B, T, d = x.shape
         x = self.mlp(x)
@@ -77,7 +78,8 @@ class SpatialTemporalGraphTransformer(nn.Module):
                 - batch: [B * T * V]
 
         Returns:
-            video: [B, 6N, H, W, 3] predicted frames
+            video: [B, T, H, W, 3] predicted frames
+                   Note that the number of frames T may be upsampled.
         '''
         x = self.spatial_encoder(x=data.x,
                                  edge_index=data.edge_index,
