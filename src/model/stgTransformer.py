@@ -13,8 +13,7 @@ class SpatialGraphEncoder(nn.Module):
         for _ in range(num_layers - 1):
             self.layers.append(GATv2Conv(hidden_dim, hidden_dim, edge_dim=edge_dim))
 
-    def forward(self, data):
-        x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
+    def forward(self, x, edge_index, edge_attr):
         for layer_idx, layer in enumerate(self.layers):
             x = layer(x=x, edge_index=edge_index, edge_attr=edge_attr)
             if layer_idx < len(self.layers) - 1:
