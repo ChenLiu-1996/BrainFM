@@ -216,7 +216,7 @@ if __name__ == "__main__":
         warmup_epochs=min(10, args.max_epochs),
         warmup_start_lr=args.learning_rate * 1e-2,
         max_epochs=args.max_epochs)
-    loss_fn = torch.nn.CrossEntropyLoss()
+    loss_fn = torch.nn.MSELoss()
 
     log_file = os.path.join(ROOT_DIR, 'results', f'log_seed-{args.random_seed}.txt')
     model_save_path = os.path.join(ROOT_DIR, 'results', f'model_seed-{args.random_seed}.pt')
