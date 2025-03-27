@@ -176,7 +176,7 @@ if __name__ == "__main__":
     args.add_argument('--max-epochs', default=50, type=int)
     args.add_argument('--max-training-iters', default=512, type=int)
     args.add_argument('--max-validation-iters', default=256, type=int)
-    args.add_argument('--batch-size', default=1, type=int)
+    args.add_argument('--batch-size', default=4, type=int)
     args.add_argument('--desired-batch-size', default=16, type=int)
     args.add_argument('--fMRI-window-frames', default=3, type=int)
     args.add_argument('--graph-knn-k', default=3, type=int)

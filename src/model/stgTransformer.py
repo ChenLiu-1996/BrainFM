@@ -13,40 +13,17 @@ class SpatialGraphEncoder(nn.Module):
         for _ in range(num_layers - 1):
             self.layers.append(GATv2Conv(hidden_channels, hidden_channels))
 
-    def forward(self, data_list):
-        '''
-        data_list: List of PyG Data objects, one per frame in a sequence
-        Returns: Tensor of shape [N, V, hidden_dim]
-        '''
-        encoded = []
-        for data in data_list:
-            x, edge_index = data.x, data.edge_index
-            for layer in self.layers:
-                x = layer(x, edge_index)
-                x = torch.relu(x)
-            encoded.append(x)
-        return torch.stack(encoded, dim=0)  # [N, V, d]
-
-class TemporalTransformer(nn.Module):
-    def __init__(self, input_dim, nhead, num_layers):
-        super().__init__()
-        encoder_layer = nn.TransformerEncoderLayer(d_model=input_dim, nhead=nhead, batch_first=True)
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-
-    def forward(self, x):
-        '''
-        x: [B, N, V, d] → flatten to [B, N*V, d] or reshape to [B, N, V*d]
-        Here we treat each timepoint as a token by flattening the spatial dim
-        '''
-        B, N, V, d = x.shape
-        x = x.view(B, N, V * d)  # [B, N, V*d]
-        x = self.encoder(x)     # [B, N, V*d]
+    def forward(self, data):
+        x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
+        for layer in self.layers:
+            x = layer(x=x, edge_index=edge_index, edge_attr=edge_attr)
+            x = torch.relu(x)
         return x
 
 class VideoDecoder(nn.Module):
     def __init__(self, input_dim, out_res=(256, 256)):
         super().__init__()
-        self.linear = nn.Sequential(
+        self.mlp = nn.Sequential(
             nn.Linear(input_dim, 512),
             nn.ReLU(),
             nn.Linear(512, out_res[0] * out_res[1] * 3)
@@ -58,7 +35,7 @@ class VideoDecoder(nn.Module):
         x: [B, 6N, d]
         '''
         B, T, d = x.shape
-        x = self.linear(x)
+        x = self.mlp(x)
         x = x.view(B, T, self.out_res[0], self.out_res[1], 3)
         return x
 
@@ -73,7 +50,7 @@ class SpatialTemporalGraphTransformer(nn.Module):
                  out_res: Tuple[int] = (256, 256)):
         super().__init__()
         self.hidden_dim = hidden_dim
-        self.spatial_encoder = GATv2Conv(in_channels, hidden_dim, edge_dim=2)  # edge_attr=[E, 2]
+        self.spatial_encoder = SpatialGraphEncoder(in_channels=in_channels, hidden_dim=hidden_dim, edge_dim=2)
 
         encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=nhead, batch_first=True)
         self.temporal_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_transformer_layers)
