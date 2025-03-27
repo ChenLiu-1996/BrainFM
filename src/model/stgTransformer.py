@@ -6,12 +6,12 @@ from einops import rearrange
 
 
 class SpatialGraphEncoder(nn.Module):
-    def __init__(self, in_channels, hidden_channels, num_layers=2):
+    def __init__(self, in_channels, hidden_dim, num_layers=2):
         super().__init__()
         self.layers = nn.ModuleList()
-        self.layers.append(GATv2Conv(in_channels, hidden_channels))
+        self.layers.append(GATv2Conv(in_channels, hidden_dim))
         for _ in range(num_layers - 1):
-            self.layers.append(GATv2Conv(hidden_channels, hidden_channels))
+            self.layers.append(GATv2Conv(hidden_dim, hidden_dim))
 
     def forward(self, data):
         x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
