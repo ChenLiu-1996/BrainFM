@@ -2,6 +2,7 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 from torch_geometric.nn import GATv2Conv
+from einops import rearrange
 
 
 class SpatialGraphEncoder(nn.Module):
@@ -117,13 +118,14 @@ class SpatialTemporalGraphTransformer(nn.Module):
         # Expand temporally to 6N using query tokens
         upsample_factor = 6
         T_out = T * upsample_factor
-        queries = self.temporal_queries.expand(B, T_out, -1)               # [B, temporal_upsampling * N, d]
+        queries = self.temporal_queries.expand(B, T_out, -1)               # [B, temporal_upsampling * T, d]
 
         # Cross-attend queries to encoded sequence.
         mean_context = x.mean(dim=1, keepdim=True)                         # [B, 1, d]
-        x_expanded = self.temporal_encoder(queries + 0.01 * mean_context)  # [B, temporal_upsampling * N, d]
+        x_expanded = self.temporal_encoder(queries + 0.01 * mean_context)  # [B, temporal_upsampling * T, d]
 
         # Decode each temporal embedding to a video frame
         video = self.decoder(x_expanded)                                   # [B, 6N, H * W * 3]
-        video = video.view(B, T_out, self.out_res[0], self.out_res[1], 3)  # [B, temporal_upsampling * N, H, W, 3]
+        video = video.view(B, T_out, self.out_res[0], self.out_res[1], 3)  # [B, temporal_upsampling * T, H, W, 3]
+        video = rearrange(video, 'b t h w d -> b h w d t')                 # [B, H, W, 3, temporal_upsampling * T]
         return video
