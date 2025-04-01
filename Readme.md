@@ -3,6 +3,35 @@
 [![Twitter](https://img.shields.io/twitter/follow/KrishnaswamyLab.svg?style=social&label=Follow)](https://twitter.com/KrishnaswamyLab)
 
 
+## Steps to reproduce
+1. Data preparation.
+If you work on Misha, you can find the preprocessed data at `/gpfs/radev/home/cl2482/project/BrainFM/data/Dynamic_Natural_Vision`.
+
+1.1 Download Dynamic Natural Vision data.
+```
+cd src/data_download
+python download_DNV.py
+```
+
+1.2 Unzip (sorry this step is messy)
+The desired structure is:
+data/Dynamic_Natural_Vision/{subject1,subject2,subject3,video}
+Under {subject1,subject2,subject3} there are {fmri/smri} folders.
+Under {video} there are {seg1.mp4,seg2.mp4,...,test5.mp4}.
+
+1.3 Preprocess the video. This will create a {video_frames} folder.
+```
+cd src/preprocessing
+python preprocess_DNV_videos.py
+```
+
+2. Train.
+```
+cd src/
+python main.py --batch-size 4 --max-training-iters 64 --max-validation-iters 64
+```
+
+
 ## Dependencies
 We developed the codebase in a miniconda environment.
 How we created the conda environment:
