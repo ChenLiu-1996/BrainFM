@@ -109,7 +109,6 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter):
             optimizer.zero_grad()
 
         if should_plot:
-            video_pred = torch.randn(size=video_true.size())
             plot_video_frames(video_true, video_pred, mode='train', batch_idx=(batch_idx + 1))
 
     train_loss /= min(max_iter, len(train_loader))
@@ -190,15 +189,24 @@ def plot_video_frames(video_true: torch.Tensor, video_pred: torch.Tensor, mode: 
     video_true = video_true.detach().cpu().numpy()
     video_pred = video_pred.detach().cpu().numpy()
 
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+
     fig = plt.figure(figsize=(24, 8))
     for frame_idx in range(6):
         ax = fig.add_subplot(2, 6, frame_idx + 1)
-        ax.imshow(video_true[0, :, :, :, frame_idx])
+        image_true = video_true[0, :, :, :, frame_idx]
+        image_true = image_true * std + mean
+        image_true = np.clip(image_true, 0, 1)
+        ax.imshow(image_true)
         if frame_idx == 0:
             ax.set_title('Ground truth video')
 
         ax = fig.add_subplot(2, 6, frame_idx + 7)
-        ax.imshow(video_pred[0, :, :, :, frame_idx])
+        image_pred = video_pred[0, :, :, :, frame_idx]
+        image_pred = image_pred * std + mean
+        image_pred = np.clip(image_pred, 0, 1)
+        ax.imshow(image_pred)
         if frame_idx == 0:
             ax.set_title('Predicted video')
 
