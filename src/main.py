@@ -197,8 +197,8 @@ def plot_video_frames(video_true: torch.Tensor, video_pred: torch.Tensor, mode: 
         if frame_idx == 0:
             ax.set_title('Ground truth video')
 
-        ax = fig.video_pred(2, 6, frame_idx + 7)
-        ax.imshow(video_true[0, :, :, :, frame_idx])
+        ax = fig.add_subplot(2, 6, frame_idx + 7)
+        ax.imshow(video_pred[0, :, :, :, frame_idx])
         if frame_idx == 0:
             ax.set_title('Predicted video')
 
