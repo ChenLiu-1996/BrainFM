@@ -25,6 +25,12 @@ cd src/preprocessing
 python preprocess_DNV_videos.py
 ```
 
+1.4 Preprocess the fMRI. This will create a {fMRI_scans} folder.
+```
+cd src/preprocessing
+python preprocess_DNV_fmri.py
+```
+
 2. Train.
 ```
 cd src/
