@@ -199,16 +199,18 @@ def plot_video_frames(video_true: torch.Tensor, video_pred: torch.Tensor, mode: 
         image_true = image_true * std + mean
         image_true = np.clip(image_true, 0, 1)
         ax.imshow(image_true)
+        ax.set_axis_off()
         if frame_idx == 0:
-            ax.set_title('Ground truth video')
+            ax.set_title('Ground truth video', fontsize=16)
 
         ax = fig.add_subplot(2, 6, frame_idx + 7)
         image_pred = video_pred[0, :, :, :, frame_idx]
         image_pred = image_pred * std + mean
         image_pred = np.clip(image_pred, 0, 1)
         ax.imshow(image_pred)
+        ax.set_axis_off()
         if frame_idx == 0:
-            ax.set_title('Predicted video')
+            ax.set_title('Predicted video', fontsize=16)
 
     save_path = os.path.join(args.plot_folder, mode, f'batch_{batch_idx}.png')
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
