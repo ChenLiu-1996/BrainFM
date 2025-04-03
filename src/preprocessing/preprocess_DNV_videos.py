@@ -20,7 +20,8 @@ def extract_frames(video_prefix, num_videos):
     '''
     for i in range(1, num_videos + 1):
         video_name = f'{video_prefix}{i}'
-        impath = os.path.join(OUTPUT_FRAME_FOLDER, video_name)
+        video_name_cleaned = video_name.replace('seg', 'train')
+        impath = os.path.join(OUTPUT_FRAME_FOLDER, video_name_cleaned)
         os.makedirs(impath, exist_ok=True)
 
         # Construct the ffmpeg command.

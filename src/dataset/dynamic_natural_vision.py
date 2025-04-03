@@ -62,26 +62,22 @@ class DynamicNaturalVisionDataset(Dataset):
         self.brain_atlas_folder = brain_atlas_folder
         assert mode in ['train', 'test'], f'`DynamicNaturalVisionDataset` mode must be `train` or `test`, but got {mode}.'
         self.mode = mode
-        string_for_mode = {
-            'train': 'seg',
-            'test': 'test',
-        }
         self.graph_knn_k = graph_knn_k
         self.transform = transform
 
         if self.subject_idx is None:
-            self.fMRI_folders = np.array(natsorted(glob(
-                os.path.join(base_folder, 'subject*', 'fmri', f'{string_for_mode[self.mode]}*', 'mni'))))
+            self.fMRI_npz_files = np.array(natsorted(glob(
+                os.path.join(base_folder, 'fMRI_scans', 'subject*', f'{self.mode}*.npz'))))
         else:
-            self.fMRI_folders = np.array(natsorted(glob(
-                os.path.join(base_folder, f'subject{self.subject_idx}', 'fmri', f'{string_for_mode[self.mode]}*', 'mni'))))
+            self.fMRI_npz_files = np.array(natsorted(glob(
+                os.path.join(base_folder, 'fMRI_scans', f'subject{self.subject_idx}', f'{self.mode}*.npz'))))
 
         self.video_frame_folder = os.path.join(base_folder, 'video_frames')
         self.atlas, self.atlas_id_map = self._load_atlas()
         self.edge_index_spatial, self.edge_attr_spatial, self.num_voxels = self._compute_voxel_graph()
 
     def __len__(self) -> int:
-        return len(self.fMRI_folders) * self.fMRI_frames_per_session_indexable
+        return len(self.fMRI_npz_files) * self.fMRI_frames_per_session_indexable
 
     def _load_atlas(self) -> np.ndarray:
         # Load and resample the brain atlas.
@@ -136,57 +132,31 @@ class DynamicNaturalVisionDataset(Dataset):
 
         return edge_index, edge_attr, num_voxels
 
-    def _load_fMRI_scans(self, fMRI_path_list: str, fMRI_frame_idx_start: int) -> np.ndarray:
+    def _load_fMRI_scans(self, fMRI_npz_file: str, fMRI_frame_idx_start: int) -> np.ndarray:
         '''
         Args:
-            fMRI_path_list: List of fMRI paths.
+            fMRI_npz_file: Path to the npz file storing the fMRI data.
             fMRI_frame_idx_start: Starting fMRI frame index.
 
         Returns:
-            repetitions: [H, W, D, T, num_repetitions] numpy array.
+            fMRI_repetitions: [H, W, D, T, num_repetitions] numpy array.
         '''
-        repetitions = None
-        for fMRI_path in fMRI_path_list:
-            fMRI_nii = nib.load(fMRI_path)
-            voxel_spacing = fMRI_nii.header['pixdim']
-            assert (voxel_spacing[1:4] == self.voxel_spacing).all(), f'Voxel spacing is not {self.voxel_spacing} mm.'
+        fMRI_repetitions = np.load(fMRI_npz_file)['fMRI']
 
-            # fMRI scan dimension is: (height, width, depth, time).
-            fMRI = fMRI_nii.get_fdata()
-            assert len(fMRI.shape) == 4
+        # Shape is: (height, width, depth, time, repetition).
+        assert len(fMRI_repetitions.shape) == 5
 
-            # Drop the first few and last few fMRI frames.
-            drop_last = 4
-            assert fMRI.shape[-1] > self.fMRI_frames_per_session + drop_last
-            drop_first = fMRI.shape[-1] - self.fMRI_frames_per_session - drop_last
-            fMRI = fMRI[..., drop_first:-drop_last]
-            assert fMRI.shape[-1] == self.fMRI_frames_per_session
+        # Drop the first few and last few fMRI frames.
+        drop_last = 4
+        assert fMRI_repetitions.shape[-2] > self.fMRI_frames_per_session + drop_last
+        drop_first = fMRI_repetitions.shape[-2] - self.fMRI_frames_per_session - drop_last
+        fMRI_repetitions = fMRI_repetitions[..., drop_first:-drop_last, :]
+        assert fMRI_repetitions.shape[-2] == self.fMRI_frames_per_session
 
-            # Data standardization.
-            # 1. Remove 4-th order trends (separately for each voxel, along time axis).
-            # 2. Zero mean and unit variance (separately for each voxel, along time axis).
-            fMRI = detrend_poly(fMRI, polyorder=4, axis=-1)
-            # After removal of 4-th order trends, the mean along time axis should be close to zero already.
-            assert np.isclose(fMRI.mean(axis=-1), np.zeros_like(fMRI.mean(axis=-1)), atol=1e-4).all(), \
-                'Removal of 4-th order trends still gives nonzero mean along time axis.'
-            mean_along_time = fMRI.mean(axis=-1, keepdims=True)
-            min_std = 1e-6
-            std_along_time = np.maximum(min_std, fMRI.std(axis=-1, keepdims=True))
-            fMRI = (fMRI - mean_along_time) / std_along_time
+        # Take the queried fMRI frames.
+        fMRI_repetitions = fMRI_repetitions[..., fMRI_frame_idx_start : fMRI_frame_idx_start + self.fMRI_window_frames, :]
 
-            # Take the queried fMRI frames.
-            fMRI_frames = fMRI[..., fMRI_frame_idx_start : fMRI_frame_idx_start + self.fMRI_window_frames]
-            assert len(fMRI_frames.shape) == 4
-
-            if repetitions is None:
-                repetitions = fMRI_frames[..., None]
-            else:
-                repetitions = np.concatenate((repetitions, fMRI_frames[..., None]), axis=-1)
-            del fMRI_frames
-
-        assert repetitions.shape[-1] == len(fMRI_path_list)
-
-        return repetitions
+        return fMRI_repetitions
 
     def _load_video_frames(self, video_id: int, fMRI_frame_idx_start: int) -> np.ndarray:
         '''
@@ -296,22 +266,21 @@ class DynamicNaturalVisionDataset(Dataset):
     def __getitem__(self, idx) -> Tuple[np.ndarray]:
         '''
         There are several repetitions per subject per session.
-        Following the official preprocessing,
-        we will perform frame dropping, removal of 4-th order trends, standardization, and
-        take the average across all repetitions per subject per session.
+        Following the original DNV paper,
+        we will take the average across all repetitions per subject per session.
         '''
         # Load the fMRI scan.
         fMRI_scan_idx = idx // self.fMRI_frames_per_session_indexable
         fMRI_frame_idx_start = idx % self.fMRI_frames_per_session_indexable
 
-        fMRI_folder = self.fMRI_folders[fMRI_scan_idx]
-        fMRI_path_list = natsorted(glob(os.path.join(fMRI_folder, '*nii*')))
+        fMRI_npz_file = self.fMRI_npz_files[fMRI_scan_idx]
 
-        repetitions = self._load_fMRI_scans(fMRI_path_list, fMRI_frame_idx_start)
-        fMRI_frames = repetitions.mean(axis=-1)
+        # Following the DNV paper, we take the average across repetitions.
+        fMRI_repetitions = self._load_fMRI_scans(fMRI_npz_file, fMRI_frame_idx_start)
+        fMRI_frames = fMRI_repetitions.mean(axis=-1)
 
         # Take the queried video frames.
-        video_id = self.fMRI_folders[fMRI_scan_idx].split('fmri/')[1].split('/mni')[0]
+        video_id = os.path.basename(self.fMRI_npz_files[fMRI_scan_idx]).split('_')[0]
         video_frames = self._load_video_frames(video_id, fMRI_frame_idx_start)
 
         assert fMRI_frames.shape[:3] == self.atlas.shape, f'fMRI ({fMRI_frames.shape[:3]}) and brain atlas {self.atlas.shape} dimension mismatch.'
@@ -327,45 +296,6 @@ def normalize_natural_image(image):
     std = np.array([0.229, 0.224, 0.225])
     image = (image - mean) / std
     return image
-
-def detrend_poly(signal, polyorder=1, axis=-1):
-    '''
-    Remove polynomial trend from a signal.
-
-    Parameters:
-    ----------
-    signal : np.ndarray
-        Input array. Detrending is performed along the specified axis.
-    polyorder : int
-        Order of the polynomial to remove (default is 1, linear detrend).
-    axis : int
-        Axis along which to detrend (default is -1).
-
-    Returns:
-    -------
-    detrended : np.ndarray
-        Signal after polynomial detrending, same shape as input.
-    '''
-    signal = np.asarray(signal)
-    detrended = np.empty_like(signal)
-
-    # Move the target axis to the end
-    signal_moved = np.moveaxis(signal, axis, -1)
-    orig_shape = signal_moved.shape
-
-    # Reshape to 2D for easier computation
-    reshaped = signal_moved.reshape(-1, orig_shape[-1])
-
-    time = np.arange(orig_shape[-1])
-    X = np.vander(time, polyorder + 1)
-
-    for i in range(reshaped.shape[0]):
-        coefs = np.linalg.lstsq(X, reshaped[i], rcond=None)[0]
-        trend = X @ coefs
-        reshaped[i] -= trend
-
-    detrended = reshaped.reshape(orig_shape)
-    return np.moveaxis(detrended, -1, axis)
 
 
 if __name__ == '__main__':

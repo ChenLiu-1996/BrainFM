@@ -4,6 +4,7 @@ import numpy as np
 import os
 import sys
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 from model.stgTransformer import SpatialTemporalGraphTransformer
 from model.vision_encoders import VisionEncoder
 from torch_geometric.loader import DataLoader
@@ -80,9 +81,13 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter):
     encoder_resnet = VisionEncoder(pretrained_model='resnet18', device=device)
     encoder_convnext = VisionEncoder(pretrained_model='convnext_tiny', device=device)
 
-    for iter_idx, data_item in enumerate(tqdm(train_loader)):
-        if max_iter is not None and iter_idx > max_iter:
+    total_batches = min(max_iter, len(train_loader))
+    plot_freq = max(total_batches // args.n_plot_per_epoch, 1)
+    for batch_idx, data_item in enumerate(tqdm(train_loader, total=total_batches)):
+        if max_iter is not None and batch_idx > max_iter:
             break
+
+        should_plot = batch_idx % plot_freq == 0
 
         fMRI_graph = data_item[0].to(device)
         video_true = data_item[1].to(device)
@@ -99,9 +104,13 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter):
         train_loss += loss.mean().item()
 
         # Simulate bigger batch size by batched optimizer update.
-        if iter_idx % batch_per_backprop == batch_per_backprop - 1:
+        if batch_idx % batch_per_backprop == batch_per_backprop - 1:
             optimizer.step()
             optimizer.zero_grad()
+
+        if should_plot:
+            video_pred = torch.randn(size=video_true.size())
+            plot_video_frames(video_true, video_pred, mode='train', batch_idx=(batch_idx + 1))
 
     train_loss /= min(max_iter, len(train_loader))
     train_cossim_clip /= min(max_iter, len(train_loader))
@@ -118,9 +127,14 @@ def val_epoch(model, val_loader, loss_fn, device, max_iter):
     encoder_resnet = VisionEncoder(pretrained_model='resnet18', device=device)
     encoder_convnext = VisionEncoder(pretrained_model='convnext_tiny', device=device)
 
-    for iter_idx, data_item in enumerate(val_loader):
-        if max_iter is not None and iter_idx > max_iter:
+    total_batches = min(max_iter, len(val_loader))
+    plot_freq = max(total_batches // args.n_plot_per_epoch, 1)
+
+    for batch_idx, data_item in enumerate(val_loader):
+        if max_iter is not None and batch_idx > max_iter:
             break
+
+        should_plot = batch_idx % plot_freq == 0
 
         fMRI_graph = data_item[0].to(device)
         video_true = data_item[1].to(device)
@@ -132,6 +146,9 @@ def val_epoch(model, val_loader, loss_fn, device, max_iter):
 
         loss = loss_fn(video_pred.float(), video_true.float())
         val_loss += loss.mean().item()
+
+        if should_plot:
+            plot_video_frames(video_true, video_pred, mode='val', batch_idx=(batch_idx + 1))
 
     val_loss /= min(max_iter, len(val_loader))
     val_cossim_clip /= min(max_iter, len(val_loader))
@@ -166,6 +183,32 @@ def test_model(model, test_loader, loss_fn, device):
     test_cossim_convnext /= len(test_loader)
     return model, test_loss, test_cossim_clip, test_cossim_resnet, test_cossim_convnext
 
+def plot_video_frames(video_true: torch.Tensor, video_pred: torch.Tensor, mode: str, batch_idx: int):
+    '''
+    Will only plot the first batch and the first 6 frames.
+    '''
+    video_true = video_true.detach().cpu().numpy()
+    video_pred = video_pred.detach().cpu().numpy()
+
+    fig = plt.figure(figsize=(24, 8))
+    for frame_idx in range(6):
+        ax = fig.add_subplot(2, 6, frame_idx + 1)
+        ax.imshow(video_true[0, :, :, :, frame_idx])
+        if frame_idx == 0:
+            ax.set_title('Ground truth video')
+
+        ax = fig.video_pred(2, 6, frame_idx + 7)
+        ax.imshow(video_true[0, :, :, :, frame_idx])
+        if frame_idx == 0:
+            ax.set_title('Predicted video')
+
+    save_path = os.path.join(args.plot_folder, mode, f'batch_{batch_idx}.png')
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    fig.tight_layout(pad=2)
+    fig.savefig(save_path)
+    plt.close(fig)
+    return
+
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser(description='Entry point.')
@@ -173,10 +216,11 @@ if __name__ == "__main__":
     args.add_argument('--max-epochs', default=50, type=int)
     args.add_argument('--max-training-iters', default=512, type=int)
     args.add_argument('--max-validation-iters', default=256, type=int)
+    args.add_argument('--n-plot-per-epoch', default=4, type=int)
     args.add_argument('--batch-size', default=2, type=int)
     args.add_argument('--desired-batch-size', default=16, type=int)
     args.add_argument('--fMRI-window-frames', default=3, type=int)
-    args.add_argument('--graph-knn-k', default=3, type=int)
+    args.add_argument('--graph-knn-k', default=5, type=int)
     args.add_argument('--learning-rate', default=1e-3, type=float)
     args.add_argument('--num-workers', default=8, type=int)
     args.add_argument('--random-seed', default=1, type=int)
@@ -215,39 +259,41 @@ if __name__ == "__main__":
         max_epochs=args.max_epochs)
     loss_fn = torch.nn.MSELoss()
 
-    log_file = os.path.join(ROOT_DIR, 'results', f'log_seed-{args.random_seed}.txt')
-    model_save_path = os.path.join(ROOT_DIR, 'results', f'model_seed-{args.random_seed}.pt')
-    os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
+    curr_run_identifier = f'model-STGT_window-{args.fMRI_window_frames}_lr-{args.learning_rate}_seed-{args.random_seed}'
+    args.model_save_path = os.path.join(ROOT_DIR, 'results', curr_run_identifier, 'model.pt')
+    args.log_file = os.path.join(ROOT_DIR, 'results', curr_run_identifier, 'log.txt')
+    args.plot_folder = os.path.join(ROOT_DIR, 'results', curr_run_identifier, 'figures')
+    os.makedirs(os.path.dirname(args.model_save_path), exist_ok=True)
 
     # Log the config.
     config_str = 'Config: \n'
     for key in vars(args).keys():
         config_str += '%s: %s\n' % (key, vars(args)[key])
     config_str += '\nTraining History:'
-    log(config_str, filepath=log_file, to_console=True)
+    log(config_str, filepath=args.log_file, to_console=True)
 
-    log('[SpatialTemporalGraphTransformer] Training begins.', filepath=log_file)
-    log(f'Using device: {device}', filepath=log_file)
+    log('[SpatialTemporalGraphTransformer] Training begins.', filepath=args.log_file)
+    log(f'Using device: {device}', filepath=args.log_file)
     best_val_loss = np.inf
     for epoch_idx in tqdm(range(args.max_epochs)):
         model.train()
         model, loss, cossim_clip, cossim_resnet, cossim_convnext = train_epoch(model, train_loader, optimizer, loss_fn, device, args.max_training_iters)
         scheduler.step()
         log(f'Epoch {epoch_idx}/{args.max_epochs}: Training Loss {loss:.3f}, CosSim CLIP|ResNet|ConvNext={cossim_clip:.3f}|{cossim_resnet:.3f}|{cossim_convnext:.3f}.',
-            filepath=log_file)
+            filepath=args.log_file)
 
         model.eval()
         model, loss, cossim_clip, cossim_resnet, cossim_convnext = val_epoch(model, val_loader, loss_fn, device, args.max_validation_iters)
         log(f'Validation Loss {loss:.3f}, CosSim CLIP|ResNet|ConvNext={cossim_clip:.3f}|{cossim_resnet:.3f}|{cossim_convnext:.3f}.',
-            filepath=log_file)
+            filepath=args.log_file)
 
         if loss < best_val_loss:
             best_val_loss = loss
-            torch.save(model.state_dict(), model_save_path)
-            log('Model weights successfully saved.', filepath=log_file)
+            torch.save(model.state_dict(), args.model_save_path)
+            log('Model weights successfully saved.', filepath=args.log_file)
 
     model.eval()
-    model.load_state_dict(torch.load(model_save_path, map_location=device))
+    model.load_state_dict(torch.load(args.model_save_path, map_location=device))
     model, loss, cossim_clip, cossim_resnet, cossim_convnext = test_model(model, test_loader, loss_fn, device)
     log(f'\n\nTest Loss {loss:.3f}, CosSim CLIP|ResNet|ConvNext={cossim_clip:.3f}|{cossim_resnet:.3f}|{cossim_convnext:.3f}.',
-        filepath=log_file)
+        filepath=args.log_file)
