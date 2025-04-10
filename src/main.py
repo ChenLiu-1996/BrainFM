@@ -5,7 +5,7 @@ import os
 import sys
 from tqdm import tqdm
 from matplotlib import pyplot as plt
-from model.stgTransformer import SpatialTemporalGraphTransformer
+from model.stg_transformer import SpatialTemporalGraphTransformer
 from model.vision_encoders import VisionEncoder
 from torch_geometric.loader import DataLoader
 
@@ -70,7 +70,7 @@ def cossim_video(encoder, video_true, video_pred):
     return np.mean(cossim_list)
 
 
-def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter):
+def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter, epoch_idx):
     train_loss, train_cossim_clip, train_cossim_resnet, train_cossim_convnext = 0, 0, 0, 0
 
     optimizer.zero_grad()
@@ -109,7 +109,7 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter):
             optimizer.zero_grad()
 
         if should_plot:
-            plot_video_frames(video_true, video_pred, mode='train', batch_idx=(batch_idx + 1))
+            plot_video_frames(video_true, video_pred, mode='train', epoch_idx=epoch_idx, batch_idx=batch_idx)
 
     train_loss /= min(max_iter, len(train_loader))
     train_cossim_clip /= min(max_iter, len(train_loader))
@@ -117,8 +117,9 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter):
     train_cossim_convnext /= min(max_iter, len(train_loader))
     return model, train_loss, train_cossim_clip, train_cossim_resnet, train_cossim_convnext
 
+
 @torch.no_grad()
-def val_epoch(model, val_loader, loss_fn, device, max_iter):
+def val_epoch(model, val_loader, loss_fn, device, max_iter, epoch_idx):
     val_loss, val_cossim_clip, val_cossim_resnet, val_cossim_convnext = 0, 0, 0, 0
 
     # These encoders are for perceptual similarity.
@@ -147,13 +148,14 @@ def val_epoch(model, val_loader, loss_fn, device, max_iter):
         val_loss += loss.mean().item()
 
         if should_plot:
-            plot_video_frames(video_true, video_pred, mode='val', batch_idx=(batch_idx + 1))
+            plot_video_frames(video_true, video_pred, mode='val', epoch_idx=epoch_idx, batch_idx=batch_idx)
 
     val_loss /= min(max_iter, len(val_loader))
     val_cossim_clip /= min(max_iter, len(val_loader))
     val_cossim_resnet /= min(max_iter, len(val_loader))
     val_cossim_convnext /= min(max_iter, len(val_loader))
     return model, val_loss, val_cossim_clip, val_cossim_resnet, val_cossim_convnext
+
 
 @torch.no_grad()
 def test_model(model, test_loader, loss_fn, device):
@@ -182,7 +184,8 @@ def test_model(model, test_loader, loss_fn, device):
     test_cossim_convnext /= len(test_loader)
     return model, test_loss, test_cossim_clip, test_cossim_resnet, test_cossim_convnext
 
-def plot_video_frames(video_true: torch.Tensor, video_pred: torch.Tensor, mode: str, batch_idx: int):
+
+def plot_video_frames(video_true: torch.Tensor, video_pred: torch.Tensor, mode: str, epoch_idx: int, batch_idx: int):
     '''
     Will only plot the first batch and the first 6 frames.
     '''
@@ -212,7 +215,7 @@ def plot_video_frames(video_true: torch.Tensor, video_pred: torch.Tensor, mode: 
         if frame_idx == 0:
             ax.set_title('Predicted video', fontsize=16)
 
-    save_path = os.path.join(args.plot_folder, mode, f'batch_{batch_idx}.png')
+    save_path = os.path.join(args.plot_folder, mode, f'epoch_{epoch_idx + 1}_batch_{batch_idx + 1}.png')
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     fig.tight_layout(pad=2)
     fig.savefig(save_path)
@@ -227,11 +230,11 @@ if __name__ == "__main__":
     args.add_argument('--max-training-iters', default=512, type=int)
     args.add_argument('--max-validation-iters', default=256, type=int)
     args.add_argument('--n-plot-per-epoch', default=4, type=int)
-    args.add_argument('--batch-size', default=2, type=int)
+    args.add_argument('--batch-size', default=1, type=int)
     args.add_argument('--desired-batch-size', default=16, type=int)
-    args.add_argument('--fMRI-window-frames', default=3, type=int)
+    args.add_argument('--fMRI-window-frames', default=1, type=int)
     args.add_argument('--graph-knn-k', default=5, type=int)
-    args.add_argument('--learning-rate', default=1e-3, type=float)
+    args.add_argument('--learning-rate', default=1e-2, type=float)
     args.add_argument('--num-workers', default=8, type=int)
     args.add_argument('--random-seed', default=1, type=int)
     args.add_argument('--data-folder', default='$ROOT/data/Dynamic_Natural_Vision/', type=str)
@@ -252,10 +255,9 @@ if __name__ == "__main__":
     model = SpatialTemporalGraphTransformer(
         in_channels=1,
         hidden_dim=16,
-        nhead=1,
-        num_transformer_layers=1,
         input_frames=args.fMRI_window_frames,
         temporal_upsampling=6,
+        device=device,
     )
     model.eval()
     model.to(device)
@@ -287,13 +289,13 @@ if __name__ == "__main__":
     best_val_loss = np.inf
     for epoch_idx in tqdm(range(args.max_epochs)):
         model.train()
-        model, loss, cossim_clip, cossim_resnet, cossim_convnext = train_epoch(model, train_loader, optimizer, loss_fn, device, args.max_training_iters)
+        model, loss, cossim_clip, cossim_resnet, cossim_convnext = train_epoch(model, train_loader, optimizer, loss_fn, device, args.max_training_iters, epoch_idx)
         scheduler.step()
         log(f'Epoch {epoch_idx}/{args.max_epochs}: Training Loss {loss:.3f}, CosSim CLIP|ResNet|ConvNext={cossim_clip:.3f}|{cossim_resnet:.3f}|{cossim_convnext:.3f}.',
             filepath=args.log_file)
 
         model.eval()
-        model, loss, cossim_clip, cossim_resnet, cossim_convnext = val_epoch(model, val_loader, loss_fn, device, args.max_validation_iters)
+        model, loss, cossim_clip, cossim_resnet, cossim_convnext = val_epoch(model, val_loader, loss_fn, device, args.max_validation_iters, epoch_idx)
         log(f'Validation Loss {loss:.3f}, CosSim CLIP|ResNet|ConvNext={cossim_clip:.3f}|{cossim_resnet:.3f}|{cossim_convnext:.3f}.',
             filepath=args.log_file)
 
