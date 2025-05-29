@@ -8,14 +8,10 @@ import torch.nn.functional as F
 from diffusers import AutoencoderKL
 from torch_geometric.data import Data
 from torch_geometric.nn import GATv2Conv, global_mean_pool, global_max_pool
+from einops import rearrange
 
 LATENT_SCALING = 0.18215  # Stable Diffusion constant
 
-
-class VideoGenerator(Protocol):
-    @torch.no_grad()
-    def generate(self, clip_tokens: torch.Tensor, *, num_frames: int) -> torch.Tensor:  # noqa: D401,E501
-        ...  # (B,T,3,H,W)
 
 class CrossAttentionBlock(nn.Module):
     def __init__(self, dim: int, cond_dim: int):
@@ -49,7 +45,6 @@ class TemporalUNet3D(nn.Module):
         h = self.attn(h, clip_tokens)
         return torch.tanh(self.up(h))
 
-    @torch.no_grad()
     def generate(self, clip_tokens: torch.Tensor, *, num_frames: int, steps: int = 20):
         B = clip_tokens.size(0)
         z = torch.randn(B, 4, 32, 32, num_frames, device=clip_tokens.device)
@@ -66,7 +61,7 @@ class GraphSpatiotemporalEncoder(nn.Module):
         ])
         self.norms = nn.ModuleList([nn.LayerNorm(g_hid) for _ in range(3)])
         self.node2tok = nn.Linear(g_hid * 2, tok_dim)
-        self.tf = nn.TransformerEncoder(
+        self.transformer = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(tok_dim, 8, 4 * tok_dim, batch_first=True), 2
         )
 
@@ -82,22 +77,25 @@ class GraphSpatiotemporalEncoder(nn.Module):
                 global_mean_pool(x, g.batch), global_max_pool(x, g.batch)
             ], 1)
             tokens.append(self.node2tok(pooled))
-        app = torch.stack(tokens, 1)  # [B,T,512]
-        mot = app[:, 1:] - app[:, :-1] if app.size(1) > 1 else app.new_zeros(app.size(0), 0, app.size(-1) // 2)
-        app = self.tf(app)
-        return app, mot[..., :256]
+        token_appearance = torch.stack(tokens, 1)  # [B,T,512]
+        if token_appearance.size(1) > 1:
+            token_motion = token_appearance[:, 1:] - token_appearance[:, :-1]
+        else:
+            token_motion = token_appearance.new_zeros(token_appearance.size(0), 0, token_appearance.size(-1) // 2)
+        token_appearance = self.transformer(token_appearance)
+        return token_appearance, token_motion[..., :256]
 
 class BrainToCLIPTokens(nn.Module):
     def __init__(self, tok_dim: int, clip_dim: int = 768, max_tokens: int = 77):
         super().__init__()
-        self.app_proj = nn.Linear(tok_dim, clip_dim)
-        self.mot_proj = nn.Linear(tok_dim // 2, clip_dim)
+        self.proj_appearance = nn.Linear(tok_dim, clip_dim)
+        self.proj_motion = nn.Linear(tok_dim // 2, clip_dim)
         self.null = nn.Parameter(torch.randn(1, max_tokens, clip_dim) * 0.02)
 
-    def forward(self, app: torch.Tensor, mot: torch.Tensor):
-        brain = self.app_proj(app)
-        if mot.nelement():
-            brain = torch.cat([brain, self.mot_proj(mot)], 1)
+    def forward(self, token_appearance: torch.Tensor, token_motion: torch.Tensor):
+        brain = self.proj_appearance(token_appearance)
+        if token_motion.nelement():
+            brain = torch.cat([brain, self.proj_motion(token_motion)], 1)
         B, N, _ = brain.shape
         pad = self.null[:, : 77 - N].expand(B, -1, -1)
         return torch.cat([brain, pad], 1)
@@ -112,7 +110,7 @@ class SpatialTemporalGraphTransformer(nn.Module):
         device: Union[str, torch.device] = "cuda",
     ):
         '''
-        End-to-end fMRI → video pipeline.
+        End-to-end fMRI-to-video pipeline.
 
         Args:
             in_channels: voxel feature channels (usually 1).
@@ -137,14 +135,13 @@ class SpatialTemporalGraphTransformer(nn.Module):
         self.to(device)
 
     def forward(self, graphs: List[Data]):
-        app, mot = self.encoder(graphs)
-        tokens = self.projector(app, mot)
+        token_appearance, token_motion = self.encoder(graphs)
+        tokens = self.projector(token_appearance, token_motion)
         video_frames = self.temporal_upsampling * self.input_frames
         latents = self.latent_gen.generate(tokens, num_frames=video_frames)
         latents = latents / LATENT_SCALING
-        B, T, C, H, W = latents.shape
-        imgs = self.vae.decode(latents.view(B * T, C, H, W)).sample
-        return imgs.view(B, T, 3, 256, 256)
+        imgs = self.vae.decode(rearrange(latents, 'b t c h w -> (b t) c h w')).sample
+        return rearrange(imgs, '(b t) c h w -> b h w c t', b=latents.shape[0])
 
 
 if __name__ == "__main__":
@@ -157,7 +154,7 @@ if __name__ == "__main__":
 
     test_set = DynamicNaturalVisionDataset(
         subject_idx=None,
-        fMRI_window_frames=3,
+        fMRI_window_frames=1,
         graph_knn_k=5,
         mode='test')
     test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
@@ -165,7 +162,7 @@ if __name__ == "__main__":
     model = SpatialTemporalGraphTransformer(
         in_channels=1,
         hidden_dim=96,
-        input_frames=3,
+        input_frames=1,
         temporal_upsampling=6,
         device='cpu',
     )

@@ -92,8 +92,6 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter, epoch
         fMRI_graph = data_item[0].to(device)
         video_true = data_item[1].to(device)
 
-        import pdb; pdb.set_trace()
-
         video_pred = model(fMRI_graph)
 
         train_cossim_clip += cossim_video(encoder_clip, video_true, video_pred)
@@ -101,9 +99,6 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device, max_iter, epoch
         train_cossim_convnext += cossim_video(encoder_convnext, video_true, video_pred)
 
         loss = loss_fn(video_pred.float(), video_true.float())
-
-        print('video_pred', video_pred[0,0,0,0])
-        print('loss', loss)
 
         loss_ = loss / batch_per_backprop
         loss_.backward()
