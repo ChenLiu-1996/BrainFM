@@ -114,7 +114,9 @@ class DynamicNaturalVisionDataset(Dataset):
                                             n_neighbors=self.graph_knn_k,
                                             mode='connectivity',
                                             include_self=False)
-        edge_index = np.argwhere(adjacency_sparse)
+
+        row, col = adjacency_sparse.nonzero()  # stays sparse
+        edge_index = np.stack([row, col], axis=1)
 
         edge_features = []
         for src_dst_pair in edge_index:
@@ -291,10 +293,11 @@ class DynamicNaturalVisionDataset(Dataset):
 
 
 def normalize_natural_image(image):
+    '''
+    Dynamic range: [-1, 1].
+    '''
     image = image / 255
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    image = (image - mean) / std
+    image = image * 2 - 1
     return image
 
 
